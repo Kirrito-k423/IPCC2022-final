@@ -1,0 +1,5 @@
+feGRASS.tar
+build/*
+.vscode
+*.log
+# run/*.txt
