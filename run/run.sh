@@ -5,7 +5,7 @@
  # @Author: Shaojie Tan
  # @Date: 2022-08-26 15:39:02
  # @LastEditors: Shaojie Tan
- # @LastEditTime: 2022-08-26 15:43:46
+ # @LastEditTime: 2022-08-26 16:02:37
 ### 
 if [ $# -eq 0 ]; then
     case=0
@@ -40,8 +40,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-coord_file_list=(./byn.txt ./byn1.txt)
-ref_file_list=(refer-byn.txt refer-byn.txt)
+coord_file_list=(./byn.mtx ./byn1.mtx)
+ref_file_list=(refer-byn.txt refer-byn1.txt)
 #run
 stdbuf --output=L ../build/bin/main ${coord_file_list[${case}]} 2>&1 |tee -a $LOG
 
