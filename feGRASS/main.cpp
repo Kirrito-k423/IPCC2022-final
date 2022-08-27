@@ -143,7 +143,7 @@ int main(int argc, const char * argv[]) {
     startTime = omp_get_wtime();
 
     //construct the edge-weight matrix
-    vector<double> edge;
+    vector<double> edge; // [point_index1, point_index2, W_eff, W_ij]
     vector<vector<double>> edge_matrix;//to run the krascal
     for (int i=0; i<triple2.size(); i++) {
         for (int j=0; j<triple2[i].size(); j++) {
@@ -162,7 +162,7 @@ int main(int argc, const char * argv[]) {
             double g=d*log(c)/(f+e);
             edge.push_back(g);
             edge.push_back(d);
-            edge_matrix.push_back(edge);
+            edge_matrix.push_back(edge); // size = L/2, 总边数
             edge.erase(edge.begin(),edge.end());
         }
     }
@@ -174,8 +174,9 @@ int main(int argc, const char * argv[]) {
     startTime = omp_get_wtime();
 
     //run kruscal to get largest-effect-weight spanning tree
-    int assistance[int(edge_matrix.size())+1];//check wether some points construct the circle
-    for (int i=0; i<=edge_matrix.size(); i++) {
+    int assistance_size=M; //int(edge_matrix.size());
+    int assistance[assistance_size+1];//check wether some points construct the circle
+    for (int i=0; i<=assistance_size; i++) {
         assistance[i]=i;
     }
     int k=0;//show how many trees have been add into
@@ -184,12 +185,14 @@ int main(int argc, const char * argv[]) {
     int tmax;
     //kruscal
     for (int i=0; i<edge_matrix.size(); i++) {
-        if (assistance[int(edge_matrix[i][0])]!=assistance[int(edge_matrix[i][1])]){
+        int edge_point1 = int(edge_matrix[i][0]);
+        int edge_point2 = int(edge_matrix[i][1]);
+        if (assistance[edge_point1]!=assistance[edge_point2]){
             k++;
             spanning_tree.push_back(edge_matrix[i]);
-            tmin=assistance[int(edge_matrix[i][0])]>=assistance[int(edge_matrix[i][1])]?assistance[int(edge_matrix[i][1])]:assistance[int(edge_matrix[i][0])];
-            tmax=assistance[int(edge_matrix[i][0])]<assistance[int(edge_matrix[i][1])]?assistance[int(edge_matrix[i][1])]:assistance[int(edge_matrix[i][0])];
-            for (int j=1; j<=int(edge_matrix.size()); j++) {
+            tmin = assistance[edge_point1]>=assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
+            tmax = assistance[edge_point1]< assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
+            for (int j=1; j<=assistance_size; j++) {
                 if (assistance[j]==tmin){
                     assistance[j]=tmax;
                 }
