@@ -143,7 +143,7 @@ int main(int argc, const char * argv[]) {
     startTime = omp_get_wtime();
 
     //construct the edge-weight matrix
-    vector<double> edge;
+    vector<double> edge; // [point_index1, point_index2, W_eff, W_ij]
     vector<vector<double>> edge_matrix;//to run the krascal
     for (int i=0; i<triple2.size(); i++) {
         for (int j=0; j<triple2[i].size(); j++) {
@@ -162,7 +162,7 @@ int main(int argc, const char * argv[]) {
             double g=d*log(c)/(f+e);
             edge.push_back(g);
             edge.push_back(d);
-            edge_matrix.push_back(edge);
+            edge_matrix.push_back(edge); // size = L/2, 总边数
             edge.erase(edge.begin(),edge.end());
         }
     }
@@ -174,8 +174,10 @@ int main(int argc, const char * argv[]) {
     startTime = omp_get_wtime();
 
     //run kruscal to get largest-effect-weight spanning tree
-    int assistance[int(edge_matrix.size())+1];//check wether some points construct the circle
-    for (int i=0; i<=edge_matrix.size(); i++) {
+    // MEWST = maximum-effective-weight spanning tree
+    int assistance_size=M; //int(edge_matrix.size());
+    int assistance[assistance_size+1];//check wether some points construct the circle
+    for (int i=0; i<=assistance_size; i++) {
         assistance[i]=i;
     }
     int k=0;//show how many trees have been add into
@@ -184,12 +186,14 @@ int main(int argc, const char * argv[]) {
     int tmax;
     //kruscal
     for (int i=0; i<edge_matrix.size(); i++) {
-        if (assistance[int(edge_matrix[i][0])]!=assistance[int(edge_matrix[i][1])]){
+        int edge_point1 = int(edge_matrix[i][0]);
+        int edge_point2 = int(edge_matrix[i][1]);
+        if (assistance[edge_point1]!=assistance[edge_point2]){
             k++;
             spanning_tree.push_back(edge_matrix[i]);
-            tmin=assistance[int(edge_matrix[i][0])]>=assistance[int(edge_matrix[i][1])]?assistance[int(edge_matrix[i][1])]:assistance[int(edge_matrix[i][0])];
-            tmax=assistance[int(edge_matrix[i][0])]<assistance[int(edge_matrix[i][1])]?assistance[int(edge_matrix[i][1])]:assistance[int(edge_matrix[i][0])];
-            for (int j=1; j<=int(edge_matrix.size()); j++) {
+            tmin = assistance[edge_point1]>=assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
+            tmax = assistance[edge_point1]< assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
+            for (int j=1; j<=assistance_size; j++) {
                 if (assistance[j]==tmin){
                     assistance[j]=tmax;
                 }
@@ -229,26 +233,42 @@ int main(int argc, const char * argv[]) {
     //construct the Laplace matrix of spanning tree
     MatrixXd LG=Eigen::MatrixXd::Zero(M,N);
     for (int i=0; i<spanning_tree.size(); i++) {
-        LG(int(spanning_tree[i][0])-1,int(spanning_tree[i][1])-1)=-spanning_tree[i][3];
-        LG(int(spanning_tree[i][1])-1,int(spanning_tree[i][0])-1)=-spanning_tree[i][3];
-        LG(int(spanning_tree[i][1])-1,int(spanning_tree[i][1])-1)+=spanning_tree[i][3];
-        LG(int(spanning_tree[i][0])-1,int(spanning_tree[i][0])-1)+=spanning_tree[i][3];
+        int edge_point1 = int(spanning_tree[i][0]);
+        int edge_point2 = int(spanning_tree[i][1]);
+        double edge_Wij = spanning_tree[i][3];
+        LG(edge_point1-1,edge_point2-1) =- edge_Wij;
+        LG(edge_point2-1,edge_point1-1) =- edge_Wij;
+        LG(edge_point2-1,edge_point2-1) += edge_Wij; //对角线
+        LG(edge_point1-1,edge_point1-1) += edge_Wij; //对角线
     }
-    MatrixXd pseudo_inverse_LG=(LG.transpose()*LG).inverse()*LG.transpose();
-
     TIME_PRINT("Construct Laplace matrix\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
+
+    for (int i=0; i<M; i++) { if(i>30){break;}
+        for (int j=0; j<N; j++) { if(j>30){break;}
+            cout<<LG(i,j)<<' ';
+        }
+        cout<<endl;
+    }
+
+    MatrixXd LG_T = LG.transpose();
+    MatrixXd pseudo_inverse_LG=(LG_T*LG).inverse()*LG_T;
+
+    TIME_PRINT("Laplace_MX transpose inverse\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
     startTime = omp_get_wtime();
 
     //calculate the resistance of each off_tree edge
     vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
     edge.erase(edge.begin(),edge.end());
     for (int i=0; i<off_tree_edge.size(); i++) {
-            edge.push_back(off_tree_edge[i][0]);
-            edge.push_back(off_tree_edge[i][1]);
-            double a=pseudo_inverse_LG(int(edge[0])-1,int(edge[0])-1);
-            double b=pseudo_inverse_LG(int(edge[1])-1,int(edge[1])-1);
-            double c=pseudo_inverse_LG(int(edge[1])-1,int(edge[0])-1);
-            double d=pseudo_inverse_LG(int(edge[0])-1,int(edge[1])-1);
+            int edge_point1 = int(off_tree_edge[i][0]);
+            int edge_point2 = int(off_tree_edge[i][1]);
+            edge.push_back(edge_point1);
+            edge.push_back(edge_point2);
+            double a=pseudo_inverse_LG(edge_point1-1,edge_point1-1);
+            double b=pseudo_inverse_LG(edge_point2-1,edge_point2-1);
+            double c=pseudo_inverse_LG(edge_point2-1,edge_point1-1);
+            double d=pseudo_inverse_LG(edge_point1-1,edge_point2-1);
             edge.push_back(a+b-c-d);
             edge.push_back(off_tree_edge[i][3]);
             copy_off_tree_edge.push_back(edge);
@@ -262,12 +282,6 @@ int main(int argc, const char * argv[]) {
     vector<vector<double>>().swap(off_tree_edge);
     stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
 
-    for (int i=0; i<M; i++) { if(i>30){break;}
-        for (int j=0; j<N; j++) { if(j>30){break;}
-            cout<<LG(i,j)<<' ';
-        }
-        cout<<endl;
-    }
     //add some edge into spanning tree
     int num_additive_tree=0;
     int similarity_tree[copy_off_tree_edge.size()];//check whether a edge is similar to the edge added before
@@ -275,7 +289,7 @@ int main(int argc, const char * argv[]) {
         similarity_tree[i]=0;
     }
 
-    TIME_PRINT("Sort & add some edge \t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    TIME_PRINT("Sort & Init add edge \t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
     startTime = omp_get_wtime();
 
 
