@@ -235,6 +235,9 @@ int main(int argc, const char * argv[]) {
     }
     MatrixXd pseudo_inverse_LG=(LG.transpose()*LG).inverse()*LG.transpose();
 
+    TIME_PRINT("Construct Laplace matrix\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
+
     //calculate the resistance of each off_tree edge
     vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
     edge.erase(edge.begin(),edge.end());
@@ -250,6 +253,9 @@ int main(int argc, const char * argv[]) {
             copy_off_tree_edge.push_back(edge);
             edge.erase(edge.begin(),edge.end());
         }
+
+    TIME_PRINT("Calculate resistance\t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
 
     //sort by effect resistance
     vector<vector<double>>().swap(off_tree_edge);
@@ -268,12 +274,12 @@ int main(int argc, const char * argv[]) {
         similarity_tree[i]=0;
     }
 
-    TIME_PRINT("Calculate resistance\t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    TIME_PRINT("Sort & add some edge \t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
     startTime = omp_get_wtime();
 
 
     for (int i=0; i<copy_off_tree_edge.size(); i++) {
-        TIME_PRINT("copy_off_tree_edge Loop %d \t took %f ms\n",i, 1000*(omp_get_wtime() - startTime));
+        TIME_PRINT("copy_off_tree_edge Loop %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), 1000*(omp_get_wtime() - startTime));
         startTime = omp_get_wtime();
         //if there has enough off-tree edge added into spanning tree, the work has been finished
         if (num_additive_tree==max(int(copy_off_tree_edge.size()/25), 2)) {
@@ -281,6 +287,7 @@ int main(int argc, const char * argv[]) {
         }
         //if adge is not the similar tree,you can add it into spanning tree
         if (similarity_tree[i]==0){
+            DEBUG_PRINT("copy_off_tree_edge Loop %d/%ld \t if(similarity_tree[i]==0)\n",i,copy_off_tree_edge.size());
             num_additive_tree++;
             /**** Iteration Log. Yuo delete the printf call. ****/
             if ((num_additive_tree%64)==0) {
