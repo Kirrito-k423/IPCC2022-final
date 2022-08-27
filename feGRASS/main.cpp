@@ -83,7 +83,8 @@ int main(int argc, const char * argv[]) {
     //free the memory of triple1
     vector<vector<double>>().swap(triple1);
 
-    TIME_PRINT("Before timing \t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    TIME_PRINT("Before timing \t\t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
 
     /**************************************************/
     /***************** Start timing *******************/
@@ -100,6 +101,9 @@ int main(int argc, const char * argv[]) {
             largest_volume=volume[i];
         }
     }
+
+    TIME_PRINT("find largestPoint \t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
 
     //run bfs to get the no-weight distance between normal point with the largest-volume point
     int no_weight_distance[M+1];//no-weight-distance between largest-volume point and normal point
@@ -134,6 +138,9 @@ int main(int argc, const char * argv[]) {
     //free the memory
     queue<int>().swap(process);
 
+    TIME_PRINT("BFS point-distance \t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
+
     //construct the edge-weight matrix
     vector<double> edge;
     vector<vector<double>> edge_matrix;//to run the krascal
@@ -162,6 +169,9 @@ int main(int argc, const char * argv[]) {
     //sort according to the weight of each edge
     stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
 
+    TIME_PRINT("Const Sort edge-weight matrix\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
+
     //run kruscal to get largest-effect-weight spanning tree
     int assistance[int(edge_matrix.size())+1];//check wether some points construct the circle
     for (int i=0; i<=edge_matrix.size(); i++) {
@@ -189,6 +199,9 @@ int main(int argc, const char * argv[]) {
         }
     }
 
+    TIME_PRINT("Run kruscal\t\t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
+
     //construct the off-tree edge
     vector<vector<double>> off_tree_edge;
     int inside=0;//To show which trees are in the spanning tree
@@ -204,6 +217,9 @@ int main(int argc, const char * argv[]) {
         off_tree_edge.push_back(edge_matrix[i]);
     }
     vector<vector<double>>().swap(edge_matrix);
+
+    TIME_PRINT("Construct off-tree edge\t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
 
     //attain the Laplace matrix of spanning tree
     //restore in SparseMatrix of Eigen
@@ -251,7 +267,14 @@ int main(int argc, const char * argv[]) {
     for (int i=0; i<copy_off_tree_edge.size(); i++) {
         similarity_tree[i]=0;
     }
+
+    TIME_PRINT("Calculate resistance\t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
+    startTime = omp_get_wtime();
+
+
     for (int i=0; i<copy_off_tree_edge.size(); i++) {
+        TIME_PRINT("copy_off_tree_edge Loop %d \t took %f ms\n",i, 1000*(omp_get_wtime() - startTime));
+        startTime = omp_get_wtime();
         //if there has enough off-tree edge added into spanning tree, the work has been finished
         if (num_additive_tree==max(int(copy_off_tree_edge.size()/25), 2)) {
             break;
@@ -412,7 +435,7 @@ int main(int argc, const char * argv[]) {
             }
         }
     }
-
+    TIME_PRINT("copy_off_tree_edge End \t\t took %f ms\n", 1000*(omp_get_wtime() - startTime));
     gettimeofday(&end, NULL);
     printf("Using time : %f ms\n", (end.tv_sec-start.tv_sec)*1000+(end.tv_usec-start.tv_usec)/1000.0);
     /**************************************************/
