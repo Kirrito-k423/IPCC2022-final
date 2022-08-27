@@ -128,9 +128,10 @@ int main(int argc, const char * argv[]) {
             continue;
         }
         for(int i=0;i<triple2[point-1].size();i++){
-            if(no_weight_distance[int(triple2[point-1][i][ROW])]==0){
-                process.push(int(triple2[point-1][i][ROW]));
-                no_weight_distance[int(triple2[point-1][i][ROW])]=distance;
+            int search_point=int(triple2[point-1][i][ROW]);
+            if(no_weight_distance[search_point]==0){
+                process.push(search_point);
+                no_weight_distance[search_point]=distance;
             }
         }
     }
