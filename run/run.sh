@@ -5,17 +5,17 @@
  # @Author: Shaojie Tan
  # @Date: 2022-08-26 15:39:02
  # @LastEditors: Shaojie Tan
- # @LastEditTime: 2022-08-26 16:02:37
+ # @LastEditTime: 2022-08-27 16:08:38
 ### 
 if [ $# -eq 0 ]; then
     case=0
-elif [ $# -eq 1 ]; then
+elif [[ $# -eq 1 || $# -eq 2 ]]; then
     case=$1
 else
-    echo "Usage: $0 [test case]"
+    echo "Usage: $0 [test case] [is Debug]"
     exit 0
 fi
-echo "Test case${case}"
+echo "Test case ${case}"
 
 set -o xtrace   #开启命令显示
 export OMP_PROC_BIND=close;export OMP_PLACES=cores
@@ -32,7 +32,15 @@ LOG=run.$timestamp.log
 git log -1 > $LOG
 
 #build
-make -C ..
+if [ $# -eq 2 ]; then
+    if [ $2 == "debug" ]; then
+        make debugPrint -C ..
+    else
+        make timePrint -C ..
+    fi
+else
+    make -C ..
+fi
 
 #check if make success
 if [ $? -ne 0 ]; then

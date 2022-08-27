@@ -3,7 +3,7 @@ MPICC = mpicc
 
 debugFlag= -g
 LIB = -lm 
-C_FLAGS= -O3 $(LIB) ${debugFlag}
+C_FLAGS= -O3 -fopenmp $(LIB) ${debugFlag}
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) ${debugFlag}
 
 INCLUDEPATH = feGRASS
@@ -18,6 +18,14 @@ FILENAME = $(SRCS:.cpp=)
 all : ${SRCS}
 	echo "compiling $(SRC_DIR) ${FILENAME}"
 	$(CC) $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+
+debugPrint: ${SRCS}
+	echo "compiling $(SRC_DIR) ${FILENAME}"
+	$(CC) -DDEBUG -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+
+timePrint: ${SRCS}
+	echo "compiling $(SRC_DIR) ${FILENAME}"
+	$(CC) -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
 
 mpi: ${SRCS}
 	echo "compiling $(SRC_DIR) ${FILENAME}"

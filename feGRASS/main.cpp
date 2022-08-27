@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <math.h>
 #include <sys/time.h>
+#include "global.h"
 
 #define ROW 0
 #define COLUMN 1
@@ -26,6 +27,7 @@ bool compare(const vector<double> &a,const vector<double> &b){
 }
 
 int main(int argc, const char * argv[]) {
+    double startTime = omp_get_wtime();
     //read input file
     const char* file = "byn1.mtx";
     if(argc > 2) {
@@ -80,6 +82,8 @@ int main(int argc, const char * argv[]) {
     triple2.push_back(triple1);
     //free the memory of triple1
     vector<vector<double>>().swap(triple1);
+
+    TIME_PRINT("Before timing \t took %f ms\n", 1000*(omp_get_wtime() - startTime));
 
     /**************************************************/
     /***************** Start timing *******************/
