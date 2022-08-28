@@ -5,7 +5,7 @@
  # @Author: Shaojie Tan
  # @Date: 2022-08-26 15:39:02
  # @LastEditors: Shaojie Tan
- # @LastEditTime: 2022-08-27 19:34:21
+ # @LastEditTime: 2022-08-29 10:23:37
 ### 
 if [ $# -eq 0 ]; then
     case=0
@@ -25,8 +25,8 @@ if [ ! -d ../build/bin ];then
     mkdir -p ../build/bin
 fi
 
-timestamp=$(git log --pretty=format:"%cd" -1 --date=format:'%Y-%m-%d_%H:%M:%S')
-LOG=run.$timestamp.log
+timestamp=`date +"%Y-%m-%d~%H-%M-%S"`
+LOG=run_case${case}.$timestamp.log
 
 #get commit
 git log -1 > $LOG
