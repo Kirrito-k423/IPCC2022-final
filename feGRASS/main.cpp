@@ -1,16 +1,5 @@
-#include "Eigen/Dense"
-#include "Eigen/LU"
-#include <stack>
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <fstream>
-#include <string>
-#include <cstdlib>
-#include <algorithm>
-#include <math.h>
-#include <sys/time.h>
 #include "global.h"
+
 
 #define ROW 0
 #define COLUMN 1
@@ -19,8 +8,9 @@
 #define vertex2 1
 #define Weight 2
 
-using namespace Eigen;
-using namespace std;
+int M;
+int N;
+int L;
 
 bool compare(const vector<double> &a,const vector<double> &b){
     return a[2]>b[2];
@@ -46,7 +36,7 @@ int main(int argc, const char * argv[]) {
     }
     //the matrix you read must be a adjacency matrix
     ifstream fin(file);
-    int M, N, L;
+    // int M, N, L;
     //Ignore headers and comments
     while (fin.peek() == '%')
         fin.ignore(2048, '\n');
@@ -307,174 +297,27 @@ int main(int argc, const char * argv[]) {
                 printf("num_additive_tree : %d\n", num_additive_tree);
             }
             spanning_tree.push_back(copy_off_tree_edge[i]);
-            //run tarjan algorithm to get the upper bound
-            stack<int> process;//to show the process of dfs
-            int mark[M+1];//to show whether a point has been gone through
-            int find[M+1];//Joint search set
-            int position_node[M+1];//restore the child point in the dfs at the time (代表已经遍历到的位置，便于下一次恢复)
-            for (int j=0; j<M+1; j++) {
-                mark[j]=0;
-                find[j]=j;
-                position_node[j]=1;
-            }
-            process.push(largest_volume_point);//choose largest-volume point as root point
-            mark[largest_volume_point]=1;
-
-            //stop the search when the vertexes of edge have been found
+            
             int edge_point1 = int(copy_off_tree_edge[i][0]);
             int edge_point2 = int(copy_off_tree_edge[i][1]);
-            while (mark[edge_point1]==0||mark[edge_point2]==0) { //如果边的两点都没有遍历到
-                for (int k=position_node[process.top()]-1; k<N; k++) { //第一次while。 position_node初始值全1，k初始值是0
-                    if (LG((process.top())-1,k) != 0 &&    //k 和 top之间有边
-                            mark[k+1] != 1 &&              //k 点没有遍历过
-                            k != (process.top())-1 ) {      //k 和 top 不是同一个点
-                        position_node[process.top()]=k+1;   
-                        mark[k+1]=1;                        
-                        process.push(k+1);                  
-                        break;                              //mark 了一个点，就while check一下
-                    }
-                    else if (k==N-1){
-                        int a=process.top();
-                        process.pop();
-                        find[a]=process.top();              //貌似想构造以largest_volume_point为根的树，但是找到 两点the vertexes of edge又中断了
-                    }
-                }
-            }
-            //get the first point we found in dfs
-            int node=process.top();
-            if (node==edge_point1) {
-                node=edge_point2;
-            }
-            else {
-                node=edge_point1;
-            }
-
-            DEBUG_PRINT("copy_off_tree_edge Loop %d/%ld \t first_point\t %d \t second_point\t %d\n",i,copy_off_tree_edge.size(),node,process.top());
-
-            //attain the no-weight distance between the first point that we found and LCA
-            int d1=0;
-            while (true) {
-                node=find[node];
-                d1++;
-                if (find[node]==node) {
-                    break;
-                }
-            }
-
-            DEBUG_PRINT("copy_off_tree_edge Loop %d/%ld \t LCA node \t %d \t large_vol_point\t %d\n",i,copy_off_tree_edge.size(),node,largest_volume_point);
-
-            //attain the no-weight distance between the second point and LCA
-            int d2=1;
-            while (true) {
-                process.pop();
-                if (process.top()==node) {
-                    break;
-                }
-                d2++;
-            }
-
-            DEBUG_PRINT("copy_off_tree_edge Loop %d/%ld \t d1 \t\t %d \t d2 \t\t %d\n",i,copy_off_tree_edge.size(),d1,d2);
+            int belta = calculate_belta(i, &LG ,largest_volume_point, edge_point1, edge_point2 );
 
             gettimeofday(&endTime, NULL);
             TIME_PRINT("copy_off %d/%ld before 2 bfs\t took %f ms\n",i,copy_off_tree_edge.size(), (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);
             gettimeofday(&startTime, NULL);
 
-            //compare between two nodes to get the lower one to limit the upper bound of bfs
-            int belta=d1>=d2?d2:d1;
-
             //choose two nodes as root node respectively to run belta bfs
             vector<int> bfs_process1;
-            bfs_process1.push_back(edge_point1);
-            //use zero to cut the near layer
-            bfs_process1.push_back(0);
-            int mark1[M+1];
-            for (int j=0; j<M+1; j++) {
-                mark1[j]=0;
-            }
-            mark1[edge_point1]=1;
-            int laywer=0;
-            for (int j=0;j<M;j++) {
-                if (laywer==belta){
-                    break;
-                }
-                if (bfs_process1[j]==0){
-                    bfs_process1.push_back(0);
-                    laywer++;
-                }
-                else{
-                    for (int x=0; x<M; x++) {
-                        if (LG(bfs_process1[j]-1,x)==0) { //第一次是寻找和root节点相联的边
-                            continue;
-                        }
-                        else if(mark1[x+1] == 0 &&          //没遍历过
-                                x+1 != bfs_process1[j] &&   //不是自己
-                                x+1 != edge_point1 ){       //不是root节点
-                            bfs_process1.push_back(x+1);
-                            mark1[x+1]=1;
-                        }
-                    }
-                }
-            }
+            belta_BFS(belta, &LG, &bfs_process1, edge_point1);
 
             vector<int> bfs_process2;
-            bfs_process2.push_back(edge_point2);
-            //use zero to cut the near layer
-            bfs_process2.push_back(0);
-            int mark2[M+1];
-            for (int j=0; j<M+1; j++) {
-                mark2[j]=0;
-            }
-            mark2[edge_point2]=1;
-            laywer=0;
-            for (int j=0;j<M;j++) {
-                if (laywer==belta){
-                    break;
-                }
-                if (bfs_process2[j]==0){
-                    bfs_process2.push_back(0);
-                    laywer++;
-                }
-                else{
-                    for (int x=0; x<M; x++) {
-                        if (LG(bfs_process2[j]-1,x)==0) {
-                            continue;
-                        }
-                        else if(mark2[x+1] == 0 &&\
-                                x+1 != bfs_process2[j] &&\
-                                x+1 != edge_point2 ){
-                            bfs_process2.push_back(x+1);
-                            mark2[x+1]=1;
-                        }
-                    }
-                }
-            }
+            belta_BFS(belta, &LG, &bfs_process2, edge_point2);
 
             gettimeofday(&endTime, NULL);
             TIME_PRINT("copy_off %d/%ld bef_mark_simi\t took %f ms\n",i,copy_off_tree_edge.size(), (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);
             gettimeofday(&startTime, NULL);
 
-            //mark the edge that is similar to the edge which wants to be added
-            for (int j=0; j<bfs_process1.size(); j++) {
-                if (bfs_process1[j]==0) {
-                    continue;
-                }
-                for (int k=0; k<bfs_process2.size(); k++) {
-                    if (bfs_process2[k]==0) {
-                        continue;
-                    }
-                    if (bfs_process1[j]==bfs_process2[k]) {
-                        continue;
-                    }
-                    for (int z=i; z<copy_off_tree_edge.size(); z++) { // 余下的off_edge里，如果该边的两点，有一点在两个bfs的点集里，则该边视作similar
-                        if (copy_off_tree_edge[z][0]==bfs_process1[j]&&copy_off_tree_edge[z][1]==bfs_process2[k]) {
-                            similarity_tree[z]=1;
-                        }
-                        else if (copy_off_tree_edge[z][0]==bfs_process2[k]&&copy_off_tree_edge[z][1]==bfs_process1[j]){
-                            similarity_tree[z]=1;
-                        }
-                    }
-                }
-            }
+            adjust_similarity_tree(i, &bfs_process1, &bfs_process2, similarity_tree, &copy_off_tree_edge);
         }
     }
 
