@@ -465,7 +465,7 @@ int main(int argc, const char * argv[]) {
                     if (bfs_process1[j]==bfs_process2[k]) {
                         continue;
                     }
-                    for (int z=i; z<copy_off_tree_edge.size(); z++) {
+                    for (int z=i; z<copy_off_tree_edge.size(); z++) { // 余下的off_edge里，如果该边的两点，有一点在两个bfs的点集里，则该边视作similar
                         if (copy_off_tree_edge[z][0]==bfs_process1[j]&&copy_off_tree_edge[z][1]==bfs_process2[k]) {
                             similarity_tree[z]=1;
                         }
