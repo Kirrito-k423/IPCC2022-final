@@ -317,6 +317,8 @@ int main(int argc, const char * argv[]) {
             TIME_PRINT("copy_off %d/%ld bef_mark_simi\t took %f ms\n",i,copy_off_tree_edge.size(), (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);
             gettimeofday(&startTime, NULL);
 
+            DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
+                        bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
             adjust_similarity_tree(i, &bfs_process1, &bfs_process2, similarity_tree, &copy_off_tree_edge);
         }
     }

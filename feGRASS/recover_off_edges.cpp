@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-08-29 21:17:11
+ * @LastEditTime: 2022-08-29 22:18:52
  */
 #include "global.h"
 
@@ -50,7 +50,7 @@ int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_poin
         node=edge_point1;
     }
 
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/%ld \t first_point\t %d \t second_point\t %d\n",i,copy_off_tree_edge.size(),node,process.top());
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t first_point\t %d \t second_point\t %d\n",i,node,process.top());
 
     //attain the no-weight distance between the first point that we found and LCA
     int d1=0;
@@ -62,7 +62,12 @@ int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_poin
         }
     }
 
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/%ld \t LCA node \t %d \t large_vol_point\t %d\n",i,copy_off_tree_edge.size(),node,largest_volume_point);
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t LCA node \t %d \t large_vol_point\t %d",i,node,largest_volume_point);
+    if(node==largest_volume_point){
+        DEBUG_PRINT("\t YES!\n");
+    }else{
+        DEBUG_PRINT("\t no\n");
+    }
 
     //attain the no-weight distance between the second point and LCA
     int d2=1;
@@ -74,7 +79,7 @@ int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_poin
         d2++;
     }
 
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/%ld \t d1 \t\t %d \t d2 \t\t %d\n",i,copy_off_tree_edge.size(),d1,d2);
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t d1 \t\t %d \t d2 \t\t %d\t min \t%d\n",i,d1,d2,d1>=d2?d2:d1);
 
     //compare between two nodes to get the lower one to limit the upper bound of bfs
     return d1>=d2?d2:d1;
