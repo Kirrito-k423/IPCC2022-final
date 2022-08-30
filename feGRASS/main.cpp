@@ -11,7 +11,7 @@
 int M;
 int N;
 int L;
-double subTime[5]={0,0,0,0,0}; // 矩阵转置， 循环总时间， 循环内三部分时间
+double subTime[5]={0,0,0,0,0}; // 伪逆， 循环总时间， 循环内三部分时间
 
 bool compare(const vector<double> &a,const vector<double> &b){
     return a[2]>b[2];
@@ -24,18 +24,18 @@ bool compare(const vector<double> &a,const vector<double> &b){
 }
 
 void print_time_proportion(double total_time){
-    printf("矩阵转置\t循环总时间\tcalculate_belta\t 2*belta_BFS\tadjust_similarity\n");
+    printf("伪逆\t循环总时间\tcalculate_belta\t 2*belta_BFS\tadjust_similarity\n");
     int i;
     int length=sizeof(subTime)/sizeof(subTime[0]);
     for(i=0; i<length-1; i++){
-        printf("%f\t",subTime[i]);
+        printf("%.2f\t",subTime[i]);
     }
-    printf("%f\n",subTime[i]);
+    printf("%.2f\n",subTime[i]);
     for(i=0; i<length-1; i++){
         printf("%.2f%%\t\t",100*subTime[i]/total_time);
     }
     printf("%.2f%%\n",100*subTime[i]/total_time);
-    printf("循环+矩阵 占比 %.2f%%\n", 100*(subTime[0]+subTime[1])/total_time);
+    printf("循环+伪逆 占比 %.2f%%\n", 100*(subTime[0]+subTime[1])/total_time);
 }
 
 int main(int argc, const char * argv[]) {
@@ -314,6 +314,9 @@ int main(int argc, const char * argv[]) {
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
             subTime[4] += tmp_past_time;
+            if(tmp_past_time>1000){
+                TIME_PRINT("\ncopy_off_tree_edge Loop %d/%ld \t took long time\n",i,copy_off_tree_edge.size());
+            }
             TIME_PRINT("\ncopy_off_tree_edge Loop %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
             num_additive_tree++;
@@ -349,6 +352,10 @@ int main(int argc, const char * argv[]) {
             DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
                         bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
             adjust_similarity_tree(i, &bfs_process1, &bfs_process2, similarity_tree, &copy_off_tree_edge);
+
+            check_next_range_similarity_tree(i,similarity_tree, 128);
+            check_next_range_similarity_tree(i,similarity_tree, 256);
+            check_next_range_similarity_tree(i,similarity_tree, 384);
         }
     }
 

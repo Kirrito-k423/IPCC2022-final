@@ -3,7 +3,7 @@ MPICC = mpicc
 
 debugFlag= -g
 LIB = -lm 
-C_FLAGS= -O3 $(LIB) ${debugFlag}
+C_FLAGS= -O3 -fopenmp $(LIB) ${debugFlag}
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) ${debugFlag}
 
 INCLUDEPATH = feGRASS

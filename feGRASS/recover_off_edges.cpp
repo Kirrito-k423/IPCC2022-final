@@ -4,10 +4,12 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-08-29 22:18:52
+ * @LastEditTime: 2022-08-30 12:59:12
  */
 #include "global.h"
 
+#define cut_similarity_range 3
+#define next_range 128
 
 int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_point1, int edge_point2){
     //run tarjan algorithm to get the upper bound
@@ -122,6 +124,15 @@ void belta_BFS(int belta, MatrixXd *LG, std::vector<int> *candidate_point_set, i
 void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<int> *bfs_process2 ,\
                             int *similarity_tree, vector<vector<double>> *copy_off_tree_edge){
     //mark the edge that is similar to the edge which wants to be added
+    int point_pair=0;
+    int hit_num=0;
+    int avail_hit=0;
+
+    int hit_cut_num=0;
+    int avail_cut_hit=0;
+
+    int hit_next_num=0;
+    int avail_next_hit=0;
     for (int j=0; j<(* bfs_process1).size(); j++) {
         if ((* bfs_process1)[j]==0) {
             continue;
@@ -133,16 +144,46 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
             if ((* bfs_process1)[j]==(* bfs_process2)[k]) {
                 continue;
             }
+            point_pair++;
             for (int z=i; z<(* copy_off_tree_edge).size(); z++) { // 余下的off_edge里，如果该边的两点，有一点在两个bfs的点集里，则该边视作similar
-                if ((* copy_off_tree_edge)[z][0]==(* bfs_process1)[j]&&
-                    (* copy_off_tree_edge)[z][1]==(* bfs_process2)[k]) {
-                    similarity_tree[z]=1;
-                }
-                else if ((* copy_off_tree_edge)[z][0]==(* bfs_process2)[k]&&
-                        (* copy_off_tree_edge)[z][1]==(* bfs_process1)[j]){
+                if (((* copy_off_tree_edge)[z][0]==(* bfs_process1)[j]&&
+                    (* copy_off_tree_edge)[z][1]==(* bfs_process2)[k]) ||
+                     ((* copy_off_tree_edge)[z][0]==(* bfs_process2)[k]&&
+                        (* copy_off_tree_edge)[z][1]==(* bfs_process1)[j])){
+                    hit_num++;
+                    if(similarity_tree[z]==0)
+                        avail_hit++;
+                    if(z<i+next_range){
+                        hit_next_num++;
+                        if(similarity_tree[z]==0)
+                            avail_next_hit++;
+                    }
+                    if(z<(* copy_off_tree_edge).size()/cut_similarity_range){
+                        hit_cut_num++;
+                        if(similarity_tree[z]==0)
+                            avail_cut_hit++;
+                    }
                     similarity_tree[z]=1;
                 }
             }
         }
     }
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d\t total\t %d\n",i,hit_num,avail_hit,point_pair);
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_num/point_pair,100*(double)avail_hit/point_pair);
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tnext\n",i,hit_next_num,avail_next_hit);
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_next_num/point_pair,100*(double)avail_next_hit/point_pair);
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tcut\n",i,hit_cut_num,avail_cut_hit);
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_cut_num/point_pair,100*(double)avail_cut_hit/point_pair);
+
+}
+
+void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range){
+    int eqaul_zero_num=0;
+    for (int j=i+1; j<= i+total_range; j++){
+        if(similarity_tree[j]==0){
+            eqaul_zero_num++;
+        }
+    }
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t check_next_range\t %d/%d \t%.2f%%\n"\
+                ,i,     eqaul_zero_num,     total_range,     100*(double)eqaul_zero_num/total_range);
 }
