@@ -46,7 +46,7 @@ int main(int argc, const char * argv[]) {
     const char* file = "byn1.mtx";
     if(argc > 2) {
         printf("Usage : ./main <filename>");
-        exit(-1);
+        exit(0);
     } else if(argc == 2) {
         file = argv[1];
     }
@@ -259,8 +259,8 @@ int main(int argc, const char * argv[]) {
         cout<<endl;
     }
 
-    MatrixXd LG_T = LG.transpose();
-    MatrixXd pseudo_inverse_LG=(LG_T*LG).inverse()*LG_T;
+    //MatrixXd pseudo_inverse_LG=(LG.transpose()*LG).inverse()*LG.transpose();
+    MatrixXd pseudo_inverse_LG=LG.completeOrthogonalDecomposition().pseudoInverse();
 
     struct timeval Matrix_end_time;
     gettimeofday(&Matrix_end_time, NULL);
