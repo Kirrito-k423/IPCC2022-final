@@ -11,6 +11,7 @@
 int M;
 int N;
 int L;
+double subTime[5]={0,0,0,0,0}; // 矩阵转置， 循环总时间， 循环内三部分时间
 
 bool compare(const vector<double> &a,const vector<double> &b){
     return a[2]>b[2];
@@ -20,6 +21,21 @@ bool compare(const vector<double> &a,const vector<double> &b){
     gettimeofday(&endTime, NULL);\
     TIME_PRINT(j, (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);\
     gettimeofday(&startTime, NULL);\
+}
+
+void print_time_proportion(double total_time){
+    printf("矩阵转置\t循环总时间\tcalculate_belta\t 2*belta_BFS\tadjust_similarity\n");
+    int i;
+    int length=sizeof(subTime)/sizeof(subTime[0]);
+    for(i=0; i<length-1; i++){
+        printf("%f\t",subTime[i]);
+    }
+    printf("%f\n",subTime[i]);
+    for(i=0; i<length-1; i++){
+        printf("%.2f%%\t\t",100*subTime[i]/total_time);
+    }
+    printf("%.2f%%\n",100*subTime[i]/total_time);
+    printf("循环+矩阵 占比 %.2f%%\n", 100*(subTime[0]+subTime[1])/total_time);
 }
 
 int main(int argc, const char * argv[]) {
@@ -246,6 +262,9 @@ int main(int argc, const char * argv[]) {
     MatrixXd LG_T = LG.transpose();
     MatrixXd pseudo_inverse_LG=(LG_T*LG).inverse()*LG_T;
 
+    struct timeval Matrix_end_time;
+    gettimeofday(&Matrix_end_time, NULL);
+    subTime[0]=(Matrix_end_time.tv_sec-startTime.tv_sec)*1000+(Matrix_end_time.tv_usec-startTime.tv_usec)/1000.0;
     printTime("Laplace_MX transpose inverse\t took %f ms\n")
 
     //calculate the resistance of each off_tree edge
@@ -281,6 +300,10 @@ int main(int argc, const char * argv[]) {
 
     printTime("Sort & Init add edge \t\t took %f ms\n");
 
+    struct timeval loop_begin_time, loop_end_time;
+    double tmp_past_time;
+    gettimeofday(&loop_begin_time, NULL);
+    
     for (int i=0; i<copy_off_tree_edge.size(); i++) {
         //if there has enough off-tree edge added into spanning tree, the work has been finished
         if (num_additive_tree==max(int(copy_off_tree_edge.size()/25), 2)) {
@@ -289,7 +312,9 @@ int main(int argc, const char * argv[]) {
         //if adge is not the similar tree,you can add it into spanning tree
         if (similarity_tree[i]==0){
             gettimeofday(&endTime, NULL);
-            TIME_PRINT("\ncopy_off_tree_edge Loop %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);
+            tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
+            subTime[4] += tmp_past_time;
+            TIME_PRINT("\ncopy_off_tree_edge Loop %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
             num_additive_tree++;
             /**** Iteration Log. You delete the printf call. ****/
@@ -303,7 +328,9 @@ int main(int argc, const char * argv[]) {
             int belta = calculate_belta(i, &LG ,largest_volume_point, edge_point1, edge_point2 );
 
             gettimeofday(&endTime, NULL);
-            TIME_PRINT("copy_off %d/%ld before 2 bfs\t took %f ms\n",i,copy_off_tree_edge.size(), (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);
+            tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
+            subTime[2] += tmp_past_time;
+            TIME_PRINT("copy_off %d/%ld before 2 bfs\t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
 
             //choose two nodes as root node respectively to run belta bfs
@@ -314,20 +341,29 @@ int main(int argc, const char * argv[]) {
             belta_BFS(belta, &LG, &bfs_process2, edge_point2);
 
             gettimeofday(&endTime, NULL);
-            TIME_PRINT("copy_off %d/%ld bef_mark_simi\t took %f ms\n",i,copy_off_tree_edge.size(), (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);
+            tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
+            subTime[3] += tmp_past_time;
+            TIME_PRINT("copy_off %d/%ld bef_mark_simi\t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
 
+            DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
+                        bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
             adjust_similarity_tree(i, &bfs_process1, &bfs_process2, similarity_tree, &copy_off_tree_edge);
         }
     }
 
+    gettimeofday(&loop_end_time, NULL);
+    subTime[1]=(loop_end_time.tv_sec-loop_begin_time.tv_sec)*1000+(loop_end_time.tv_usec-loop_begin_time.tv_usec)/1000.0;
+    subTime[4] += (loop_end_time.tv_sec-startTime.tv_sec)*1000+(loop_end_time.tv_usec-startTime.tv_usec)/1000.0;
     printTime("\ncopy_off_tree_edge End \t\t took %f ms\n\n")
 
     gettimeofday(&end, NULL);
     printf("Using time : %f ms\n", (end.tv_sec-start.tv_sec)*1000+(end.tv_usec-start.tv_usec)/1000.0);
+    double total_time=(end.tv_sec-start.tv_sec)*1000+(end.tv_usec-start.tv_usec)/1000.0;
     /**************************************************/
     /******************* End timing *******************/
     /**************************************************/
+    print_time_proportion(total_time);
 
     FILE* out = fopen("result.txt", "w");
     for(int i=0; i<spanning_tree.size(); i++){
