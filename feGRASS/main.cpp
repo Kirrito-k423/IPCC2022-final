@@ -11,7 +11,7 @@
 int M;
 int N;
 int L;
-double subTime[5]={0,0,0,0,0}; // 矩阵转置， 循环总时间， 循环内三部分时间
+double subTime[5]={0,0,0,0,0}; // 伪逆， 循环总时间， 循环内三部分时间
 
 bool compare(const vector<double> &a,const vector<double> &b){
     return a[2]>b[2];
@@ -24,18 +24,18 @@ bool compare(const vector<double> &a,const vector<double> &b){
 }
 
 void print_time_proportion(double total_time){
-    printf("矩阵转置\t循环总时间\tcalculate_belta\t 2*belta_BFS\tadjust_similarity\n");
+    printf("伪逆\t循环总时间\tcalculate_belta\t 2*belta_BFS\tadjust_similarity\n");
     int i;
     int length=sizeof(subTime)/sizeof(subTime[0]);
     for(i=0; i<length-1; i++){
-        printf("%f\t",subTime[i]);
+        printf("%.2f\t",subTime[i]);
     }
-    printf("%f\n",subTime[i]);
+    printf("%.2f\n",subTime[i]);
     for(i=0; i<length-1; i++){
         printf("%.2f%%\t\t",100*subTime[i]/total_time);
     }
     printf("%.2f%%\n",100*subTime[i]/total_time);
-    printf("循环+矩阵 占比 %.2f%%\n", 100*(subTime[0]+subTime[1])/total_time);
+    printf("循环+伪逆 占比 %.2f%%\n", 100*(subTime[0]+subTime[1])/total_time);
 }
 
 int main(int argc, const char * argv[]) {
