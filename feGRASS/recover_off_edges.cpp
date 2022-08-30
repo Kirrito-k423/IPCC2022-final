@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-08-30 12:00:45
+ * @LastEditTime: 2022-08-30 12:59:12
  */
 #include "global.h"
 
@@ -175,4 +175,15 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
     DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tcut\n",i,hit_cut_num,avail_cut_hit);
     DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_cut_num/point_pair,100*(double)avail_cut_hit/point_pair);
 
+}
+
+void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range){
+    int eqaul_zero_num=0;
+    for (int j=i+1; j<= i+total_range; j++){
+        if(similarity_tree[j]==0){
+            eqaul_zero_num++;
+        }
+    }
+    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t check_next_range\t %d/%d \t%.2f%%\n"\
+                ,i,     eqaul_zero_num,     total_range,     100*(double)eqaul_zero_num/total_range);
 }
