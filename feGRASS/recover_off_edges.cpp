@@ -4,12 +4,10 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-08-30 12:59:12
+ * @LastEditTime: 2022-08-30 19:28:26
  */
 #include "global.h"
 
-#define cut_similarity_range 3
-#define next_range 128
 
 int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_point1, int edge_point2){
     //run tarjan algorithm to get the upper bound
@@ -145,7 +143,7 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
                 continue;
             }
             point_pair++;
-            for (int z=i; z<(* copy_off_tree_edge).size(); z++) { // 余下的off_edge里，如果该边的两点，有一点在两个bfs的点集里，则该边视作similar
+            for (int z=i; z<(* copy_off_tree_edge).size()/cut_similarity_range; z++) { // 余下的off_edge里，如果该边的两点，有一点在两个bfs的点集里，则该边视作similar
                 if (((* copy_off_tree_edge)[z][0]==(* bfs_process1)[j]&&
                     (* copy_off_tree_edge)[z][1]==(* bfs_process2)[k]) ||
                      ((* copy_off_tree_edge)[z][0]==(* bfs_process2)[k]&&
@@ -186,4 +184,12 @@ void check_next_range_similarity_tree(int i, int *similarity_tree, int total_ran
     }
     DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t check_next_range\t %d/%d \t%.2f%%\n"\
                 ,i,     eqaul_zero_num,     total_range,     100*(double)eqaul_zero_num/total_range);
+}
+
+void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address){
+    for(; i < similarity_tree_length; i++){
+        if(similarity_tree[i]==0 && thread_similarity_tree_address[i]==1){
+            similarity_tree[i]=1;
+        }
+    }
 }
