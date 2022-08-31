@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-27 15:58:17
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-08-30 19:29:40
+ * @LastEditTime: 2022-08-31 20:25:58
  */
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
@@ -62,4 +62,5 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address);
+void test_LCA_find_update(MatrixXd *LG, int largest_volume_point);
 #endif

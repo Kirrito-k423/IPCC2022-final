@@ -311,6 +311,8 @@ int main(int argc, const char * argv[]) {
     
     int current_off_edge_index=0;
     int max_num_additive_tree = max(int(copy_off_tree_edge.size()/25), 2);
+    test_LCA_find_update(&LG, largest_volume_point);
+
     struct timeval loop_begin_time, loop_end_time;
     double tmp_past_time;
     gettimeofday(&loop_begin_time, NULL);
