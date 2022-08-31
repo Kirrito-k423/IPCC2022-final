@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-31 20:16:21
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-08-31 20:26:53
+ * @LastEditTime: 2022-08-31 22:52:15
  */
 
 
@@ -49,5 +49,18 @@ void test_LCA_find_update(MatrixXd *LG, int largest_volume_point){
                 find[a]=process.top();              //貌似想构造以largest_volume_point为根的树，但是找到 两点the vertexes of edge又中断了
             }
         }
+    }
+    DEBUG_PRINT("pop ----------\n");
+    while(!process.empty()){
+        int a=process.top();
+        process.pop();
+        if(process.empty())
+            break;
+        if(find[a]==a){
+            DEBUG_PRINT("find[%d\t] update from %d \t to %d\n", a, find[a], process.top());
+        }else{
+            DEBUG_PRINT("\t overwrite find[%d\t] update from %d \t to %d\n", a, find[a], process.top());
+        }
+        find[a]=process.top();              //貌似想构造以largest_volume_point为根的树，但是找到 两点the vertexes of edge又中断了
     }
 }

@@ -311,7 +311,9 @@ int main(int argc, const char * argv[]) {
     
     int current_off_edge_index=0;
     int max_num_additive_tree = max(int(copy_off_tree_edge.size()/25), 2);
-    test_LCA_find_update(&LG, largest_volume_point);
+    // test_LCA_find_update(&LG, largest_volume_point);
+    int find[M+1];//Joint search set
+    LCA_find(find, &LG, largest_volume_point);
 
     struct timeval loop_begin_time, loop_end_time;
     double tmp_past_time;
@@ -337,9 +339,13 @@ int main(int argc, const char * argv[]) {
         // 并行执行任务，产生结果到各自的similar
         #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic)
         for(i=0; i<task_pool_size; i++){
+            if(task_list[i]>similarity_tree_length){
+                continue;
+            }
             int edge_point1 = int(copy_off_tree_edge[task_list[i]][0]);
             int edge_point2 = int(copy_off_tree_edge[task_list[i]][1]);
-            int belta = calculate_belta(task_list[i], &LG ,largest_volume_point, edge_point1, edge_point2 );
+            // int belta = calculate_belta(task_list[i], &LG ,largest_volume_point, edge_point1, edge_point2 );
+            int belta = calculate_belta_from_find(task_list[i], find, edge_point1, edge_point2 );
 
             //choose two nodes as root node respectively to run belta bfs
             vector<int> bfs_process1;

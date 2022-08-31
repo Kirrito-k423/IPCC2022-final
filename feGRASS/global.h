@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-27 15:58:17
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-08-31 20:25:58
+ * @LastEditTime: 2022-08-31 23:52:49
  */
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
@@ -23,7 +23,7 @@
 #include <sys/time.h>
 
 #define NUM_THREADS 16
-#define task_pool_size 32
+#define task_pool_size 16
 // enum task_divide_mode {sequential, distracted}
 // #define mode sequential
 #define cut_similarity_range 3
@@ -63,4 +63,9 @@ void check_next_range_similarity_tree(int i, int *similarity_tree, int total_ran
 
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address);
 void test_LCA_find_update(MatrixXd *LG, int largest_volume_point);
+void LCA_find(int *find, MatrixXd *LG, int largest_volume_point);
+int calculate_belta_from_find(int i, int *find, int edge_point1, int edge_point2);
+
+void print_M1_Array(string name,int * toPrint);
+void printStack(string name, stack<int> toPrint);
 #endif

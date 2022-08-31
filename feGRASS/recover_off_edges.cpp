@@ -4,10 +4,63 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-08-30 19:28:26
+ * @LastEditTime: 2022-09-01 00:13:18
  */
 #include "global.h"
 
+void LCA_find(int *find, MatrixXd *LG, int largest_volume_point){
+    //run tarjan algorithm to get the upper bound
+    stack<int> process;//to show the process of dfs
+    int mark[M+1];//to show whether a point has been gone through
+    int position_node[M+1];//restore the child point in the dfs at the time (代表已经遍历到的位置，便于下一次恢复)
+    for (int j=0; j<M+1; j++) {
+        mark[j]=0;
+        find[j]=j;
+        position_node[j]=1;
+    }
+    process.push(largest_volume_point);//choose largest-volume point as root point
+    mark[largest_volume_point]=1;
+
+    int marked_num=1;
+
+    //stop the search when the vertexes of edge have been found
+    while (marked_num < M) { //所有的点都要mark到
+        for (int k=position_node[process.top()]-1; k<N; k++) { //第一次while。 position_node初始值全1，k初始值是0
+            if ((* LG)((process.top())-1,k) != 0 &&    //k 和 top之间有边
+                    mark[k+1] != 1 &&              //k 点没有遍历过
+                    k != (process.top())-1 ) {      //k 和 top 不是同一个点
+                position_node[process.top()]=k+1;   
+                mark[k+1]=1;       
+                marked_num++;                 
+                process.push(k+1);                  
+                break;                              //mark 了一个点，就while check一下
+            }
+            else if (k==N-1){
+                int a=process.top();
+                process.pop();
+                // if(find[a]==a){
+                //     DEBUG_PRINT("find[%d\t] update from %d \t to %d\n", a, find[a], process.top());
+                // }else{
+                //     DEBUG_PRINT("\t overwrite find[%d\t] update from %d \t to %d\n", a, find[a], process.top());
+                // }
+                find[a]=process.top();              //貌似想构造以largest_volume_point为根的树，但是找到 两点the vertexes of edge又中断了
+            }
+        }
+    }
+    DEBUG_PRINT("pop ----------\n");
+    while(!process.empty()){
+        int a=process.top();
+        process.pop();
+        if(process.empty())
+            break;
+        if(find[a]==a){
+            DEBUG_PRINT("find[%d\t] update from %d \t to %d\n", a, find[a], process.top());
+        }else{
+            DEBUG_PRINT("\t overwrite find[%d\t] update from %d \t to %d\n", a, find[a], process.top());
+        }
+        find[a]=process.top();              //貌似想构造以largest_volume_point为根的树，但是找到 两点the vertexes of edge又中断了
+    }
+}
 
 int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_point1, int edge_point2){
     //run tarjan algorithm to get the upper bound
@@ -31,7 +84,7 @@ int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_poin
                     k != (process.top())-1 ) {      //k 和 top 不是同一个点
                 position_node[process.top()]=k+1;   
                 mark[k+1]=1;                        
-                process.push(k+1);                  
+                process.push(k+1); 
                 break;                              //mark 了一个点，就while check一下
             }
             else if (k==N-1){
@@ -51,6 +104,7 @@ int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_poin
     }
 
     DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t first_point\t %d \t second_point\t %d\n",i,node,process.top());
+    // print_M1_Array("find",find);
 
     //attain the no-weight distance between the first point that we found and LCA
     int d1=0;
@@ -62,17 +116,18 @@ int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_poin
         }
     }
 
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t LCA node \t %d \t large_vol_point\t %d",i,node,largest_volume_point);
     if(node==largest_volume_point){
-        DEBUG_PRINT("\t YES!\n");
+        DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t LCA node \t %d \t large_vol_point\t %d\t YES!\n",i,node,largest_volume_point);
     }else{
-        DEBUG_PRINT("\t no\n");
+        DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t LCA node \t %d \t large_vol_point\t %d\t no\n",i,node,largest_volume_point);
     }
 
     //attain the no-weight distance between the second point and LCA
+    // printStack("stack",process);
     int d2=1;
     while (true) {
         process.pop();
+        // printStack("pop",process);
         if (process.top()==node) {
             break;
         }
@@ -85,6 +140,35 @@ int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_poin
     return d1>=d2?d2:d1;
 }
 
+int calculate_belta_from_find(int i, int *find, int edge_point1, int edge_point2){
+    int current_node1=edge_point1;
+    int current_node2=edge_point2;
+    int mark1[M+1];//to show whether a point has been gone through
+    int mark2[M+1];//to show whether a point has been gone through
+    memset(mark1, 0 , sizeof(int)* (M+1));
+    memset(mark2, 0 , sizeof(int)* (M+1));
+    int step=0;
+    while(mark2[current_node1]==0 && mark1[current_node2]==0 && current_node1 != current_node2){
+        if(mark1[current_node1]==0)
+            mark1[current_node1]=step;
+        if(mark2[current_node2]==0)
+            mark2[current_node2]=step;
+        // DEBUG_PRINT("%d \t%d\n",current_node1,current_node2);
+        current_node1=find[current_node1];
+        current_node2=find[current_node2];
+        step++;
+    }
+    if(mark1[current_node2]!=0){
+        DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t 1node2 %d\t min %d\t\n", i , current_node2, mark1[current_node2]);
+        return mark1[current_node2];
+    }else if(mark2[current_node1]!=0){
+        DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t 2node1 %d\t min %d\t\n", i , current_node1, mark2[current_node1]);
+        return mark2[current_node1];
+    }else if(current_node1 == current_node2){
+        DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t node12 %d\t step %d\t\n", i , current_node1, step);
+        return step;
+    }
+}
 void belta_BFS(int belta, MatrixXd *LG, std::vector<int> *candidate_point_set, int edge_point){
     (* candidate_point_set).push_back(edge_point);
     //use zero to cut the near layer
@@ -166,12 +250,12 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
             }
         }
     }
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d\t total\t %d\n",i,hit_num,avail_hit,point_pair);
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_num/point_pair,100*(double)avail_hit/point_pair);
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tnext\n",i,hit_next_num,avail_next_hit);
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_next_num/point_pair,100*(double)avail_next_hit/point_pair);
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tcut\n",i,hit_cut_num,avail_cut_hit);
-    DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_cut_num/point_pair,100*(double)avail_cut_hit/point_pair);
+    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d\t total\t %d\n",i,hit_num,avail_hit,point_pair);
+    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_num/point_pair,100*(double)avail_hit/point_pair);
+    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tnext\n",i,hit_next_num,avail_next_hit);
+    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_next_num/point_pair,100*(double)avail_next_hit/point_pair);
+    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tcut\n",i,hit_cut_num,avail_cut_hit);
+    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_cut_num/point_pair,100*(double)avail_cut_hit/point_pair);
 
 }
 
