@@ -24,7 +24,7 @@ bool compare(const vector<double> &a,const vector<double> &b){
 }
 
 void print_time_proportion(double total_time){
-    printf("伪逆\t循环总时间\tcalculate_belta\t 2*belta_BFS\tadjust_similarity\n");
+    printf("等效电阻计算\t循环总时间\tcalculate_belta\t 2*belta_BFS\tadjust_similarity\n");
     int i;
     int length=sizeof(subTime)/sizeof(subTime[0]);
     for(i=0; i<length-1; i++){
@@ -259,32 +259,13 @@ int main(int argc, const char * argv[]) {
         cout<<endl;
     }
 
-    //MatrixXd pseudo_inverse_LG=(LG.transpose()*LG).inverse()*LG.transpose();
-    MatrixXd pseudo_inverse_LG=LG.completeOrthogonalDecomposition().pseudoInverse();
+    //calculate the resistance of each off_tree edge
+    vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
+    caculate_resistance(spanning_tree, off_tree_edge, copy_off_tree_edge, LG);
 
     struct timeval Matrix_end_time;
     gettimeofday(&Matrix_end_time, NULL);
     subTime[0]=(Matrix_end_time.tv_sec-startTime.tv_sec)*1000+(Matrix_end_time.tv_usec-startTime.tv_usec)/1000.0;
-    printTime("Laplace_MX transpose inverse\t took %f ms\n")
-
-    //calculate the resistance of each off_tree edge
-    vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
-    edge.erase(edge.begin(),edge.end());
-    for (int i=0; i<off_tree_edge.size(); i++) {
-            int edge_point1 = int(off_tree_edge[i][0]);
-            int edge_point2 = int(off_tree_edge[i][1]);
-            edge.push_back(edge_point1);
-            edge.push_back(edge_point2);
-            double a=pseudo_inverse_LG(edge_point1-1,edge_point1-1);
-            double b=pseudo_inverse_LG(edge_point2-1,edge_point2-1);
-            double c=pseudo_inverse_LG(edge_point2-1,edge_point1-1);
-            double d=pseudo_inverse_LG(edge_point1-1,edge_point2-1);
-            edge.push_back(a+b-c-d);
-            edge.push_back(off_tree_edge[i][3]);
-            copy_off_tree_edge.push_back(edge);
-            edge.erase(edge.begin(),edge.end());
-        }
-
     printTime("Calculate resistance\t\t took %f ms\n")
 
     //sort by effect resistance

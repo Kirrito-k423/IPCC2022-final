@@ -55,4 +55,6 @@ void belta_BFS(int belta, MatrixXd *LG, std::vector<int> *candidate_point_set, i
 void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<int> *bfs_process2 ,\
                             int *similarity_tree, vector<vector<double>> *copy_off_tree_edge);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
+
+void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<double>> &off_tree_edge, vector<vector<double>> &copy_off_tree_edge, MatrixXd &LG);
 #endif
