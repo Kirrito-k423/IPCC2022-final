@@ -12,6 +12,7 @@
 #include "Eigen/Dense"
 #include "Eigen/LU"
 #include <stack>
+#include <map>
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -59,6 +60,8 @@ int calculate_belta(int i, MatrixXd &LG, int largest_volume_point, int edge_poin
 void belta_BFS(int belta, MatrixXd &LG, std::vector<int> &candidate_point_set, int edge_point);
 void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<double>> &copy_off_tree_edge);
+void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
+                            int *similarity_tree, map<uint32_t, uint16_t> &copy_off_tree_edge);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address);
