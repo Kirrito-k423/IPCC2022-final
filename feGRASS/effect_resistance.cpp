@@ -29,3 +29,13 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
         edge.erase(edge.begin(),edge.end());
     }
 }
+
+void write_edge(vector<vector<double>> &edge, string file){
+    ofstream fout(file);
+    for (int i=0; i<edge.size(); i++) {
+        int edge_point1 = int(edge[i][0]);
+        int edge_point2 = int(edge[i][1]);
+        fout<<edge_point1<<" "<<edge_point2<<" "<<edge[i][2]<<" "<<edge[i][3]<<endl;
+    }
+    fout.close();
+}
