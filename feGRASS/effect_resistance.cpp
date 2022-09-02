@@ -48,7 +48,7 @@ void DFS_traversal(vector<vector<vector<double>>> &adja_list, double *dis, int *
             int search_point = adja_list[point][i][0];
             if(no_weight_dis[search_point]==-1){   //first search
                 process.push(search_point);
-                dis[search_point] = dis[point] + adja_list[point][i][1];    //add edge weight
+                dis[search_point] = dis[point] + 1.0/adja_list[point][i][1];    //add edge weight
                 parent[search_point] = point;
                 no_weight_dis[search_point] = no_weight_dis[point] + 1;
             }
@@ -139,7 +139,7 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
     //DFS遍历，得到dis,parent等
     DFS_traversal(adja_list, dis, parent, no_weight_dis);
     printTime("DFS traversal\t\t took %f ms\n")
-    debug_print(dis, parent, no_weight_dis);
+    // debug_print(dis, parent, no_weight_dis);
     
     vector<double> edge;
     for (int i=0; i<off_tree_edge.size(); i++) {
@@ -150,7 +150,6 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
 
         //树上计算等效电阻简单方式
         int LCA_point = get_LCA(edge_point1, edge_point2, parent, no_weight_dis);
-        printf("LCA(%d, %d)=%d\n", edge_point1, edge_point2, LCA_point);
         double eff_resist = dis[edge_point1] + dis[edge_point2] - 2*dis[LCA_point];
         edge.push_back(eff_resist);
 
