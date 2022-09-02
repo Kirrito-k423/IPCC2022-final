@@ -43,11 +43,17 @@ using namespace std;
 #define OMP_TIME_PRINT(fmt, args...)
 #endif
 
+#define printTime(j) {\
+    gettimeofday(&endTime, NULL);\
+    TIME_PRINT(j, (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);\
+    gettimeofday(&startTime, NULL);\
+}
 
 //global value
 extern int M;
 extern int N;
 extern int L;
+extern int largest_volume_point;
 
 
 int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_point1, int edge_point2);
@@ -56,6 +62,6 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
                             int *similarity_tree, vector<vector<double>> *copy_off_tree_edge);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 
-void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<double>> &off_tree_edge, vector<vector<double>> &copy_off_tree_edge, MatrixXd &LG);
+void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<double>> &off_tree_edge, vector<vector<double>> &copy_off_tree_edge);
 void write_edge(vector<vector<double>> &edge, string file);
 #endif

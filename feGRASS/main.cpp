@@ -11,16 +11,11 @@
 int M;
 int N;
 int L;
+int largest_volume_point;
 double subTime[5]={0,0,0,0,0}; // 伪逆， 循环总时间， 循环内三部分时间
 
 bool compare(const vector<double> &a,const vector<double> &b){
     return a[2]>b[2];
-}
-
-#define printTime(j) {\
-    gettimeofday(&endTime, NULL);\
-    TIME_PRINT(j, (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);\
-    gettimeofday(&startTime, NULL);\
 }
 
 void print_time_proportion(double total_time){
@@ -106,7 +101,7 @@ int main(int argc, const char * argv[]) {
     gettimeofday(&start, NULL);
 
     //find the point that has the largest volume
-    int largest_volume_point=0;
+    largest_volume_point=0;
     double largest_volume=0;
     for (int i=1;i<=M;i++){
         if (volume[i]>largest_volume){
@@ -261,7 +256,7 @@ int main(int argc, const char * argv[]) {
 
     //calculate the resistance of each off_tree edge
     vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
-    caculate_resistance(spanning_tree, off_tree_edge, copy_off_tree_edge, LG);
+    caculate_resistance(spanning_tree, off_tree_edge, copy_off_tree_edge);
     write_edge(spanning_tree, "edge-spanning_tree.log");
     write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge.log");
 
