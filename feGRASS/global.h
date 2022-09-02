@@ -63,5 +63,6 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 
 void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<double>> &off_tree_edge, vector<vector<double>> &copy_off_tree_edge);
-void write_edge(vector<vector<double>> &edge, string file);
+void write_edge(vector<vector<double>> &edge, const char *file);
+// void write_edge(vector<vector<double>> &edge, string file);
 #endif

@@ -163,12 +163,15 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
     free(dis);
 }
 
-void write_edge(vector<vector<double>> &edge, string file){
-    ofstream fout(file);
+void write_edge(vector<vector<double>> &edge, const char *file){
+    FILE *fp;
+    fp = fopen(file, "w");
     for (int i=0; i<edge.size(); i++) {
         int edge_point1 = int(edge[i][0]);
         int edge_point2 = int(edge[i][1]);
-        fout<<edge_point1<<" "<<edge_point2<<" "<<edge[i][2]<<" "<<edge[i][3]<<endl;
+        fprintf(fp, "%2d %2d %f \t%f\n", edge_point1, edge_point2, edge[i][2], edge[i][3]);
+        // fout<<edge_point1<<" "<<edge_point2<<" "<<edge[i][2]<<" "<<edge[i][3]<<endl;
     }
-    fout.close();
+    // fout.close();
+    fclose(fp);
 }
