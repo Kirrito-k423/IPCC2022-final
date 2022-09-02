@@ -302,6 +302,8 @@ int main(int argc, const char * argv[]) {
     struct timeval loop_begin_time, loop_end_time;
     double tmp_past_time;
     gettimeofday(&loop_begin_time, NULL);
+    printTime("before while \t\t took %f ms\n");
+
     while(1){
         // 从similarity里确定分配的任务列表
         int i=current_off_edge_index;
