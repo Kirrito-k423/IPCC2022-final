@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-27 15:58:17
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-09-02 12:46:11
+ * @LastEditTime: 2022-09-02 15:43:33
  */
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
@@ -23,7 +23,7 @@
 #include <sys/time.h>
 
 #define NUM_THREADS 16
-#define task_pool_size 16
+#define task_pool_size 64
 // enum task_divide_mode {sequential, distracted}
 // #define mode sequential
 #define cut_similarity_range 3

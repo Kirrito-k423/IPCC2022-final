@@ -315,6 +315,10 @@ int main(int argc, const char * argv[]) {
     int find[M+1];//Joint search set
     LCA_find(find, LG, largest_volume_point);
 
+    //debug 打印并行有效命中率
+    int avail_task_num=0;
+    int total_task_num=0;
+
     struct timeval loop_begin_time, loop_end_time;
     double tmp_past_time;
     gettimeofday(&loop_begin_time, NULL);
@@ -369,10 +373,12 @@ int main(int argc, const char * argv[]) {
         TIME_PRINT("copy_off_tree_edge OMP %d/%ld \t took %f ms\n",current_off_edge_index,copy_off_tree_edge.size(), tmp_past_time);
         gettimeofday(&startTime, NULL);
 
+        int tmp_avail_task_num = 0;
         //串行处理similarity_list,合并到similarity_tree里,判断何时break
         for(i=0; i<task_pool_size; i++){
             current_off_edge_index = task_list[i];
             if (similarity_tree[current_off_edge_index]==0){
+                tmp_avail_task_num++;
                 num_additive_tree++;
                 if ((num_additive_tree%64)==0) {
                     printf("num_additive_tree : %d\n", num_additive_tree);
@@ -385,6 +391,10 @@ int main(int argc, const char * argv[]) {
                 merge_thread_similarity_tree(current_off_edge_index, similarity_tree_length, similarity_tree, thread_similarity_tree_address);
             } 
         }
+        avail_task_num += tmp_avail_task_num;
+        total_task_num += task_pool_size;
+        DEBUG_PRINT("copy_off_tree_edge OneLoop %d/%ld \t avail %d \t %.2f%%\n",current_off_edge_index,copy_off_tree_edge.size(),
+                    tmp_avail_task_num,100*(double)tmp_avail_task_num/task_pool_size);
         current_off_edge_index += 1;
         if (num_additive_tree==max_num_additive_tree) {
             break;
@@ -396,6 +406,8 @@ int main(int argc, const char * argv[]) {
         TIME_PRINT("copy_off_tree_edge merge %d/%ld \t took %f ms\n",current_off_edge_index,copy_off_tree_edge.size(), tmp_past_time);
         gettimeofday(&startTime, NULL);
     }
+    DEBUG_PRINT("copy_off_tree_edge EndLoop %d/%ld \t avail %d \t all %d \t %.2f%%\n",current_off_edge_index,copy_off_tree_edge.size(),
+                    avail_task_num, total_task_num, 100*(double) avail_task_num/total_task_num);
 
     gettimeofday(&loop_end_time, NULL);
     subTime[1]=(loop_end_time.tv_sec-loop_begin_time.tv_sec)*1000+(loop_end_time.tv_usec-loop_begin_time.tv_usec)/1000.0;
