@@ -25,7 +25,7 @@ if [ ! -d ../build/bin ];then
     mkdir -p ../build/bin
 fi
 
-timestamp=`date +"%Y-%m-%d~%H-%M-%S"`
+timestamp=`date +"%Y-%m-%d~%H"`
 LOG=run_case${case}.$timestamp.log
 
 #get commit

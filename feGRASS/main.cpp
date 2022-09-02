@@ -11,20 +11,15 @@
 int M;
 int N;
 int L;
+int largest_volume_point;
 double subTime[5]={0,0,0,0,0}; // 伪逆， 循环总时间， 循环内三部分时间
 
 bool compare(const vector<double> &a,const vector<double> &b){
     return a[2]>b[2];
 }
 
-#define printTime(j) {\
-    gettimeofday(&endTime, NULL);\
-    TIME_PRINT(j, (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);\
-    gettimeofday(&startTime, NULL);\
-}
-
 void print_time_proportion(double total_time){
-    printf("伪逆\t循环总时间\t 任务划分\t OMP\t merge\n");
+    printf("等效电阻\t循环总时间\t 任务划分\t OMP\t merge\n");
     int i;
     int length=sizeof(subTime)/sizeof(subTime[0]);
     for(i=0; i<length-1; i++){
@@ -106,7 +101,7 @@ int main(int argc, const char * argv[]) {
     gettimeofday(&start, NULL);
 
     //find the point that has the largest volume
-    int largest_volume_point=0;
+    largest_volume_point=0;
     double largest_volume=0;
     for (int i=1;i<=M;i++){
         if (volume[i]>largest_volume){
@@ -259,37 +254,23 @@ int main(int argc, const char * argv[]) {
         cout<<endl;
     }
 
-    //MatrixXd pseudo_inverse_LG=(LG.transpose()*LG).inverse()*LG.transpose();
-    MatrixXd pseudo_inverse_LG=LG.completeOrthogonalDecomposition().pseudoInverse();
+    //calculate the resistance of each off_tree edge
+    vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
+    caculate_resistance(spanning_tree, off_tree_edge, copy_off_tree_edge);
+    // write_edge(spanning_tree, "edge-spanning_tree.log");
+    // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge.log");
 
     struct timeval Matrix_end_time;
     gettimeofday(&Matrix_end_time, NULL);
     subTime[0]=(Matrix_end_time.tv_sec-startTime.tv_sec)*1000+(Matrix_end_time.tv_usec-startTime.tv_usec)/1000.0;
-    printTime("Laplace_MX transpose inverse\t took %f ms\n")
-
-    //calculate the resistance of each off_tree edge
-    vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
-    edge.erase(edge.begin(),edge.end());
-    for (int i=0; i<off_tree_edge.size(); i++) {
-            int edge_point1 = int(off_tree_edge[i][0]);
-            int edge_point2 = int(off_tree_edge[i][1]);
-            edge.push_back(edge_point1);
-            edge.push_back(edge_point2);
-            double a=pseudo_inverse_LG(edge_point1-1,edge_point1-1);
-            double b=pseudo_inverse_LG(edge_point2-1,edge_point2-1);
-            double c=pseudo_inverse_LG(edge_point2-1,edge_point1-1);
-            double d=pseudo_inverse_LG(edge_point1-1,edge_point2-1);
-            edge.push_back(a+b-c-d);
-            edge.push_back(off_tree_edge[i][3]);
-            copy_off_tree_edge.push_back(edge);
-            edge.erase(edge.begin(),edge.end());
-        }
-
     printTime("Calculate resistance\t\t took %f ms\n")
 
     //sort by effect resistance
     vector<vector<double>>().swap(off_tree_edge);
     stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
+    // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
+
+    printTime("Sort & Init add edge \t\t took %f ms\n");
 
     //add some edge into spanning tree
     int num_additive_tree=0;
@@ -299,7 +280,6 @@ int main(int argc, const char * argv[]) {
         similarity_tree[i]=0;
     }
 
-    printTime("Sort & Init add edge \t\t took %f ms\n");
 
     
     
