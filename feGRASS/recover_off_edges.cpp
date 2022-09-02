@@ -8,6 +8,42 @@
  */
 #include "global.h"
 
+int calculate_beta(int i, int j){
+    int LCA_point = get_LCA(i-1, j-1, parent, no_weight_dis);
+    int d1 = no_weight_dis[i-1] - no_weight_dis[LCA_point];
+    int d2 = no_weight_dis[j-1] - no_weight_dis[LCA_point];
+    return d1 < d2 ? d1 : d2;
+}
+
+void beta_BFS(int beta, std::vector<int> &queue, int root){
+    queue.push_back(root);
+    //use zero to cut the near layer
+    queue.push_back(0);
+    int mark[M];
+    memset(mark, 0, sizeof(mark));
+    mark[root-1]=1;
+    int layer=0;
+    for (int j=0;j<M;j++) {
+        if (layer==beta){
+            break;
+        }
+        if (queue[j]==0){
+            queue.push_back(0);
+            layer++;
+        }
+        else{
+            int point = queue[j]-1;
+            for (int i=0; i<adja_list[point].size(); i++) {
+                int search_point = adja_list[point][i][0];
+                if(mark[search_point]==0){
+                    queue.push_back(search_point+1);
+                    mark[search_point] = 1;
+                }
+            }
+        }
+    }
+}
+
 void LCA_find(int *find, MatrixXd &LG, int largest_volume_point){
     //run tarjan algorithm to get the upper bound
     stack<int> process;//to show the process of dfs

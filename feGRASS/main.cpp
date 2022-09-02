@@ -331,14 +331,24 @@ int main(int argc, const char * argv[]) {
             int edge_point1 = int(copy_off_tree_edge[task_list[i]][0]);
             int edge_point2 = int(copy_off_tree_edge[task_list[i]][1]);
             // int belta = calculate_belta(task_list[i], &LG ,largest_volume_point, edge_point1, edge_point2 );
-            int belta = calculate_belta_from_find(task_list[i], find, edge_point1, edge_point2 );
+            // int belta = calculate_belta_from_find(task_list[i], find, edge_point1, edge_point2 );
+            int belta = calculate_beta(edge_point1, edge_point2);
+            // printf("belta(%d, %d)=%d\n", edge_point1, edge_point2, belta);
+            // printf("beta(%d, %d)=%d\n", edge_point1, edge_point2, beta);
 
             //choose two nodes as root node respectively to run belta bfs
             vector<int> bfs_process1;
-            belta_BFS(belta, LG, bfs_process1, edge_point1);
+            // belta_BFS(belta, LG, bfs_process1, edge_point1);
+            beta_BFS(belta, bfs_process1, edge_point1);
+            // printf("%d(%d): ", edge_point1, belta);
+            // for(int j=0; j<bfs_process1.size(); j++){
+            //     printf("%d ", bfs_process1[j]);
+            // }
+            // printf("\n");
 
             vector<int> bfs_process2;
-            belta_BFS(belta, LG, bfs_process2, edge_point2);
+            beta_BFS(belta, bfs_process2, edge_point2);
+            // belta_BFS(belta, LG, bfs_process2, edge_point2);
 
             // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
             //             bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
