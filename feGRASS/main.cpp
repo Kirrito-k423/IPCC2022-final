@@ -311,9 +311,9 @@ int main(int argc, const char * argv[]) {
     
     int current_off_edge_index=0;
     int max_num_additive_tree = max(int(copy_off_tree_edge.size()/25), 2);
-    // test_LCA_find_update(&LG, largest_volume_point);
+    // test_LCA_find_update(LG, largest_volume_point);
     int find[M+1];//Joint search set
-    LCA_find(find, &LG, largest_volume_point);
+    LCA_find(find, LG, largest_volume_point);
 
     struct timeval loop_begin_time, loop_end_time;
     double tmp_past_time;
@@ -349,17 +349,17 @@ int main(int argc, const char * argv[]) {
 
             //choose two nodes as root node respectively to run belta bfs
             vector<int> bfs_process1;
-            belta_BFS(belta, &LG, &bfs_process1, edge_point1);
+            belta_BFS(belta, LG, bfs_process1, edge_point1);
 
             vector<int> bfs_process2;
-            belta_BFS(belta, &LG, &bfs_process2, edge_point2);
+            belta_BFS(belta, LG, bfs_process2, edge_point2);
 
             // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
             //             bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
 
             int * thread_similarity_tree_address = similarity_tree_list + i*(similarity_tree_length);
             memset(thread_similarity_tree_address, 0 , sizeof(int)* similarity_tree_length);
-            adjust_similarity_tree(task_list[i], &bfs_process1, &bfs_process2, thread_similarity_tree_address, &copy_off_tree_edge);
+            adjust_similarity_tree(task_list[i], bfs_process1, bfs_process2, thread_similarity_tree_address, copy_off_tree_edge);
             // 假如按照论文，可以写同一个similarity_tree_list（不行，尝试过了，结果有几个是错的）
         }
         

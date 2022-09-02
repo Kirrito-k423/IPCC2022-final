@@ -4,11 +4,11 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-09-01 00:13:18
+ * @LastEditTime: 2022-09-02 12:45:31
  */
 #include "global.h"
 
-void LCA_find(int *find, MatrixXd *LG, int largest_volume_point){
+void LCA_find(int *find, MatrixXd &LG, int largest_volume_point){
     //run tarjan algorithm to get the upper bound
     stack<int> process;//to show the process of dfs
     int mark[M+1];//to show whether a point has been gone through
@@ -26,7 +26,7 @@ void LCA_find(int *find, MatrixXd *LG, int largest_volume_point){
     //stop the search when the vertexes of edge have been found
     while (marked_num < M) { //所有的点都要mark到
         for (int k=position_node[process.top()]-1; k<N; k++) { //第一次while。 position_node初始值全1，k初始值是0
-            if ((* LG)((process.top())-1,k) != 0 &&    //k 和 top之间有边
+            if (LG((process.top())-1,k) != 0 &&    //k 和 top之间有边
                     mark[k+1] != 1 &&              //k 点没有遍历过
                     k != (process.top())-1 ) {      //k 和 top 不是同一个点
                 position_node[process.top()]=k+1;   
@@ -62,7 +62,7 @@ void LCA_find(int *find, MatrixXd *LG, int largest_volume_point){
     }
 }
 
-int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_point1, int edge_point2){
+int calculate_belta(int i, MatrixXd &LG, int largest_volume_point, int edge_point1, int edge_point2){
     //run tarjan algorithm to get the upper bound
     stack<int> process;//to show the process of dfs
     int mark[M+1];//to show whether a point has been gone through
@@ -79,7 +79,7 @@ int calculate_belta(int i, MatrixXd *LG, int largest_volume_point, int edge_poin
     //stop the search when the vertexes of edge have been found
     while (mark[edge_point1]==0||mark[edge_point2]==0) { //如果边的两点都没有遍历到
         for (int k=position_node[process.top()]-1; k<N; k++) { //第一次while。 position_node初始值全1，k初始值是0
-            if ((* LG)((process.top())-1,k) != 0 &&    //k 和 top之间有边
+            if (LG((process.top())-1,k) != 0 &&    //k 和 top之间有边
                     mark[k+1] != 1 &&              //k 点没有遍历过
                     k != (process.top())-1 ) {      //k 和 top 不是同一个点
                 position_node[process.top()]=k+1;   
@@ -169,10 +169,10 @@ int calculate_belta_from_find(int i, int *find, int edge_point1, int edge_point2
         return step;
     }
 }
-void belta_BFS(int belta, MatrixXd *LG, std::vector<int> *candidate_point_set, int edge_point){
-    (* candidate_point_set).push_back(edge_point);
+void belta_BFS(int belta, MatrixXd &LG, std::vector<int> &candidate_point_set, int edge_point){
+    candidate_point_set.push_back(edge_point);
     //use zero to cut the near layer
-    (* candidate_point_set).push_back(0);
+    candidate_point_set.push_back(0);
     int mark1[M+1];
     for (int j=0; j<M+1; j++) {
         mark1[j]=0;
@@ -183,19 +183,19 @@ void belta_BFS(int belta, MatrixXd *LG, std::vector<int> *candidate_point_set, i
         if (laywer==belta){
             break;
         }
-        if ((* candidate_point_set)[j]==0){
-            (* candidate_point_set).push_back(0);
+        if (candidate_point_set[j]==0){
+            candidate_point_set.push_back(0);
             laywer++;
         }
         else{
             for (int x=0; x<M; x++) {
-                if ((* LG)((* candidate_point_set)[j]-1,x)==0) { //第一次是寻找和root节点相联的边
+                if (LG(candidate_point_set[j]-1,x)==0) { //第一次是寻找和root节点相联的边
                     continue;
                 }
                 else if(mark1[x+1] == 0 &&          //没遍历过
-                        x+1 != (* candidate_point_set)[j] &&   //不是自己
+                        x+1 != candidate_point_set[j] &&   //不是自己
                         x+1 != edge_point ){       //不是root节点
-                    (* candidate_point_set).push_back(x+1);
+                    candidate_point_set.push_back(x+1);
                     mark1[x+1]=1;
                 }
             }
@@ -203,8 +203,8 @@ void belta_BFS(int belta, MatrixXd *LG, std::vector<int> *candidate_point_set, i
     }
 }
 
-void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<int> *bfs_process2 ,\
-                            int *similarity_tree, vector<vector<double>> *copy_off_tree_edge){
+void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
+                            int *similarity_tree, vector<vector<double>> &copy_off_tree_edge){
     //mark the edge that is similar to the edge which wants to be added
     int point_pair=0;
     int hit_num=0;
@@ -215,23 +215,23 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
 
     int hit_next_num=0;
     int avail_next_hit=0;
-    for (int j=0; j<(* bfs_process1).size(); j++) {
-        if ((* bfs_process1)[j]==0) {
+    for (int j=0; j<bfs_process1.size(); j++) {
+        if (bfs_process1[j]==0) {
             continue;
         }
-        for (int k=0; k<(* bfs_process2).size(); k++) {
-            if ((* bfs_process2)[k]==0) {
+        for (int k=0; k<bfs_process2.size(); k++) {
+            if (bfs_process2[k]==0) {
                 continue;
             }
-            if ((* bfs_process1)[j]==(* bfs_process2)[k]) {
+            if (bfs_process1[j]==bfs_process2[k]) {
                 continue;
             }
             point_pair++;
-            for (int z=i; z<(* copy_off_tree_edge).size()/cut_similarity_range; z++) { // 余下的off_edge里，如果该边的两点，有一点在两个bfs的点集里，则该边视作similar
-                if (((* copy_off_tree_edge)[z][0]==(* bfs_process1)[j]&&
-                    (* copy_off_tree_edge)[z][1]==(* bfs_process2)[k]) ||
-                     ((* copy_off_tree_edge)[z][0]==(* bfs_process2)[k]&&
-                        (* copy_off_tree_edge)[z][1]==(* bfs_process1)[j])){
+            for (int z=i; z<copy_off_tree_edge.size()/cut_similarity_range; z++) { // 余下的off_edge里，如果该边的两点，有一点在两个bfs的点集里，则该边视作similar
+                if ((copy_off_tree_edge[z][0]==bfs_process1[j]&&
+                    copy_off_tree_edge[z][1]==bfs_process2[k]) ||
+                     (copy_off_tree_edge[z][0]==bfs_process2[k]&&
+                        copy_off_tree_edge[z][1]==bfs_process1[j])){
                     hit_num++;
                     if(similarity_tree[z]==0)
                         avail_hit++;
@@ -240,7 +240,7 @@ void adjust_similarity_tree(int i, std::vector<int> *bfs_process1, std::vector<i
                         if(similarity_tree[z]==0)
                             avail_next_hit++;
                     }
-                    if(z<(* copy_off_tree_edge).size()/cut_similarity_range){
+                    if(z<copy_off_tree_edge.size()/cut_similarity_range){
                         hit_cut_num++;
                         if(similarity_tree[z]==0)
                             avail_cut_hit++;
