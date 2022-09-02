@@ -98,6 +98,43 @@ void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<i
 
 }
 
+
+void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
+                            int *similarity_tree, map<uint32_t, uint16_t> &off_tree_edge_map){
+    //mark the edge that is similar to the edge which wants to be added
+    int point_pair=0;
+    int hit_num=0;
+    int avail_hit=0;
+
+    int hit_cut_num=0;
+    int avail_cut_hit=0;
+
+    int hit_next_num=0;
+    int avail_next_hit=0;
+    for (int j=0; j<bfs_process1.size(); j++) {
+        if (bfs_process1[j]==0) {
+            continue;
+        }
+        for (int k=0; k<bfs_process2.size(); k++) {
+            if (bfs_process2[k]==0) {
+                continue;
+            }
+            if (bfs_process1[j]==bfs_process2[k]) {
+                continue;
+            }
+            point_pair++;
+            uint32_t key = (uint32_t(bfs_process1[j]) << 16) | uint32_t(bfs_process2[k]);
+            // DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
+            //map<uint32_t, uint16_t>::iterator it;
+            if (off_tree_edge_map.count(key) == 1){
+                DEBUG_PRINT("edge index: %d\n", uint16_t(off_tree_edge_map.find(key)->second));
+                similarity_tree[uint16_t(off_tree_edge_map.find(key)->second)] = 1;
+                DEBUG_PRINT("hash_edges: node %x, %x, %d\n", uint32_t(bfs_process1[j]), uint32_t(bfs_process2[k]), off_tree_edge_map.find(key)->second);
+            } 
+        }
+    }
+}
+
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range){
     int eqaul_zero_num=0;
     for (int j=i+1; j<= i+total_range; j++){
