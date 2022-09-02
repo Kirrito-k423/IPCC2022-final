@@ -23,9 +23,9 @@ void print_time_proportion(double total_time){
     int i;
     int length=sizeof(subTime)/sizeof(subTime[0]);
     for(i=0; i<length-1; i++){
-        printf("%.2f\t",subTime[i]);
+        printf("%8.2f\t",subTime[i]);
     }
-    printf("%.2f\n",subTime[i]);
+    printf("%8.2f\n",subTime[i]);
     for(i=0; i<length-1; i++){
         printf("%.2f%%\t\t",100*subTime[i]/total_time);
     }
@@ -285,7 +285,7 @@ int main(int argc, const char * argv[]) {
     
     // 动态大小的 任务池
     int task_list[task_pool_size];
-    int similarity_tree_list[task_pool_size * similarity_tree_length];
+    int * similarity_tree_list = (int *)malloc(sizeof(int) *task_pool_size * similarity_tree_length);
     // 并行初始化？
     memset(similarity_tree_list, 0, sizeof(int) * task_pool_size * similarity_tree_length);
     
