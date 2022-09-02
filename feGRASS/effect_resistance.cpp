@@ -57,26 +57,11 @@ void DFS_traversal(vector<vector<vector<double>>> &adja_list, double *dis, int *
 }
 
 void debug_print(double *dis, int *parent, int *no_weight_dis){
-    // printf("parent: \n");
-    // for(int i=0; i<M; i++){
-    //     printf("%2d ", i);
-    // }
-    // printf("\n");
-    // for(int i=0; i<M; i++){
-    //     printf("%2d ", parent[i]);
-    // }
-    // printf("\n");
-
     printf("largest_volume_point: %d\n", largest_volume_point-1);
-    printf("dis: \n");
+    printf("%4s %4s %4s %4s\n", "i", "pare", "dis", "wdis");
     for(int i=0; i<M; i++){
-        printf("%4d ", i);
+        printf("%4d %4d %4d %4.1f\n", i, parent[i], no_weight_dis[i], dis[i]);
     }
-    printf("\n");
-    for(int i=0; i<M; i++){
-        printf("%4.1f ", dis[i]);
-    }
-    printf("\n");
 }
 
 void debug_print_adja(vector<vector<vector<double>>> &adja_list){
@@ -88,6 +73,33 @@ void debug_print_adja(vector<vector<vector<double>>> &adja_list){
         }
         printf("\n");
     }
+}
+
+/**
+ * 打印i, j到LCA上途径的点
+*/
+void debug_print_path(int i, int j, int *parent, int *no_weight_dis){
+    if(no_weight_dis[i] < no_weight_dis[j]){
+        int tmp = i;
+        i = j;
+        j = tmp;
+    }
+    //keep dis[i] >= dis[j]
+    printf("%4d %4d\n", i, j);
+    int delta = no_weight_dis[i] - no_weight_dis[j];
+    while(delta--){
+        i = parent[i];
+        printf("%4d\n", i);
+    }
+
+    if(i == j) return;
+
+    while(parent[i]!=parent[j]){
+        i = parent[i];
+        j = parent[j];
+        printf("%4d %4d\n", i, j);
+    }
+    printf("  %4d\n", parent[i]);
 }
 
 /**
@@ -105,6 +117,8 @@ static inline int get_LCA(int i, int j, int *parent, int *no_weight_dis){
     while(delta--){
         i = parent[i];
     }
+
+    if(i == j) return i;    //如果i和j位于一条路径上
 
     while(parent[i]!=parent[j]){
         i = parent[i];
@@ -141,6 +155,9 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
     printTime("DFS traversal\t\t took %f ms\n")
     // debug_print(dis, parent, no_weight_dis);
     
+    // printf("path: \n");
+    // debug_print_path(1859, 3044, parent, no_weight_dis);
+
     vector<double> edge;
     for (int i=0; i<off_tree_edge.size(); i++) {
         int edge_point1 = int(off_tree_edge[i][0])-1;
@@ -150,6 +167,9 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
 
         //树上计算等效电阻简单方式
         int LCA_point = get_LCA(edge_point1, edge_point2, parent, no_weight_dis);
+        // printf("LCA(%d, %d)=%d\n", edge_point1, edge_point2, LCA_point);
+        // int d_ = no_weight_dis[edge_point1] + no_weight_dis[edge_point2] - 2*no_weight_dis[LCA_point];
+        // printf("no_weight_dis(%d, %d)=%d\n", edge_point1, edge_point2, d_);
         double eff_resist = dis[edge_point1] + dis[edge_point2] - 2*dis[LCA_point];
         edge.push_back(eff_resist);
 

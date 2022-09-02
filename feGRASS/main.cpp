@@ -258,7 +258,7 @@ int main(int argc, const char * argv[]) {
     vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
     caculate_resistance(spanning_tree, off_tree_edge, copy_off_tree_edge);
     // write_edge(spanning_tree, "edge-spanning_tree.log");
-    write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge.log");
+    // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge.log");
 
     struct timeval Matrix_end_time;
     gettimeofday(&Matrix_end_time, NULL);
@@ -268,7 +268,7 @@ int main(int argc, const char * argv[]) {
     //sort by effect resistance
     vector<vector<double>>().swap(off_tree_edge);
     stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
-    write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
+    // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
 
     //add some edge into spanning tree
     int num_additive_tree=0;
