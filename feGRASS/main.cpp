@@ -247,6 +247,30 @@ int main(int argc, const char * argv[]) {
 
     printTime("Sort & Init add edge \t\t took %f ms\n");
 
+    /*
+    construct global off-tree edges hash map, for an off-tree edge 
+    with point with index i and j, hash key could be i << 16 & j
+    Attention: point index should supposed less than 2^16.
+    */
+    map<uint32_t, uint16_t> off_tree_edge_map;
+    //ofstream ou;
+    //string path = "off_tree_edges.txt";
+    //ou.open(path.c_str());
+    for(int i = 0; i < copy_off_tree_edge.size()/cut_similarity_range; i++){
+        // store a pair of directed edges to reduce lookup time
+        uint32_t key1 = (uint32_t(copy_off_tree_edge[i][0]) << 16) | uint32_t(copy_off_tree_edge[i][1]);
+        uint32_t key2 = (uint32_t(copy_off_tree_edge[i][1]) << 16) | uint32_t(copy_off_tree_edge[i][0]);
+        printf("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
+        off_tree_edge_map[key1] = uint16_t(i);
+        off_tree_edge_map[key2] = uint16_t(i);
+        //off_tree_edge_map.insert(pair<uint32_t, uint16_t>(key, i));        
+        // char s[100];
+        // sprintf(s, "node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
+        // ou << s;
+    }
+    //ou.close();
+    printTime("Construct off-tree edge hash map\t\t took %f ms\n")
+
     //add some edge into spanning tree
     int num_additive_tree=0;
     int similarity_tree_length=copy_off_tree_edge.size()/cut_similarity_range;
@@ -321,7 +345,13 @@ int main(int argc, const char * argv[]) {
 
             int * thread_similarity_tree_address = similarity_tree_list + i*(similarity_tree_length);
             memset(thread_similarity_tree_address, 0 , sizeof(int)* similarity_tree_length);
-            adjust_similarity_tree(task_list[i], bfs_process1, bfs_process2, thread_similarity_tree_address, copy_off_tree_edge);
+            // original adjust similarity tree
+            //adjust_similarity_tree(task_list[i], bfs_process1, bfs_process2, thread_similarity_tree_address, copy_off_tree_edge);
+
+            // using hash map to store off tree edges
+            DEBUG_PRINT("start to adjust similarity tree\n");
+            adjust_similarity_tree(task_list[i], bfs_process1, bfs_process2, thread_similarity_tree_address, off_tree_edge_map);
+
             // 假如按照论文，可以写同一个similarity_tree_list（不行，尝试过了，结果有几个是错的）
         }
         
