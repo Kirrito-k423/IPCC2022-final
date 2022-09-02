@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-09-02 12:45:31
+ * @LastEditTime: 2022-09-02 19:59:31
  */
 #include "global.h"
 
@@ -215,6 +215,7 @@ void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<i
 
     int hit_next_num=0;
     int avail_next_hit=0;
+    #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic)
     for (int j=0; j<bfs_process1.size(); j++) {
         if (bfs_process1[j]==0) {
             continue;
