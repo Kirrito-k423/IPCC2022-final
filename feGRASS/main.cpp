@@ -260,7 +260,7 @@ int main(int argc, const char * argv[]) {
         // store a pair of directed edges to reduce lookup time
         uint32_t key1 = (uint32_t(copy_off_tree_edge[i][0]) << 16) | uint32_t(copy_off_tree_edge[i][1]);
         uint32_t key2 = (uint32_t(copy_off_tree_edge[i][1]) << 16) | uint32_t(copy_off_tree_edge[i][0]);
-        // DEBUG_PRINT("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
+        DEBUG_PRINT("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
         off_tree_edge_map[key1] = uint16_t(i);
         off_tree_edge_map[key2] = uint16_t(i);
         //off_tree_edge_map.insert(pair<uint32_t, uint16_t>(key, i));        
@@ -329,6 +329,7 @@ int main(int argc, const char * argv[]) {
             int beta = calculate_beta(edge_point1, edge_point2);
 
             //choose two nodes as root node respectively to run belta bfs
+            DEBUG_PRINT("start to 2 beta_BFS\n");
             vector<int> bfs_process1;
             beta_BFS(beta, bfs_process1, edge_point1);
             // printf("%d(%d): ", edge_point1, belta);
@@ -340,8 +341,8 @@ int main(int argc, const char * argv[]) {
             vector<int> bfs_process2;
             beta_BFS(beta, bfs_process2, edge_point2);
 
-            // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
-            //             bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
+            DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
+                        bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
 
             int * thread_similarity_tree_address = similarity_tree_list + i*(similarity_tree_length);
             memset(thread_similarity_tree_address, 0 , sizeof(int)* similarity_tree_length);
@@ -349,7 +350,7 @@ int main(int argc, const char * argv[]) {
             //adjust_similarity_tree(task_list[i], bfs_process1, bfs_process2, thread_similarity_tree_address, copy_off_tree_edge);
 
             // using hash map to store off tree edges
-            // DEBUG_PRINT("start to adjust similarity tree\n");
+            DEBUG_PRINT("start to adjust similarity tree\n");
             adjust_similarity_tree(task_list[i], bfs_process1, bfs_process2, thread_similarity_tree_address, off_tree_edge_map);
 
             // 假如按照论文，可以写同一个similarity_tree_list（不行，尝试过了，结果有几个是错的）
