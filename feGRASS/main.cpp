@@ -260,7 +260,7 @@ int main(int argc, const char * argv[]) {
         // store a pair of directed edges to reduce lookup time
         uint32_t key1 = (uint32_t(copy_off_tree_edge[i][0]) << 16) | uint32_t(copy_off_tree_edge[i][1]);
         uint32_t key2 = (uint32_t(copy_off_tree_edge[i][1]) << 16) | uint32_t(copy_off_tree_edge[i][0]);
-        printf("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
+        // DEBUG_PRINT("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
         off_tree_edge_map[key1] = uint16_t(i);
         off_tree_edge_map[key2] = uint16_t(i);
         //off_tree_edge_map.insert(pair<uint32_t, uint16_t>(key, i));        
@@ -349,7 +349,7 @@ int main(int argc, const char * argv[]) {
             //adjust_similarity_tree(task_list[i], bfs_process1, bfs_process2, thread_similarity_tree_address, copy_off_tree_edge);
 
             // using hash map to store off tree edges
-            DEBUG_PRINT("start to adjust similarity tree\n");
+            // DEBUG_PRINT("start to adjust similarity tree\n");
             adjust_similarity_tree(task_list[i], bfs_process1, bfs_process2, thread_similarity_tree_address, off_tree_edge_map);
 
             // 假如按照论文，可以写同一个similarity_tree_list（不行，尝试过了，结果有几个是错的）
@@ -376,7 +376,13 @@ int main(int argc, const char * argv[]) {
                     break;
                 }
                 int * thread_similarity_tree_address = similarity_tree_list + i*(similarity_tree_length);
-                merge_thread_similarity_tree(current_off_edge_index, similarity_tree_length, similarity_tree, thread_similarity_tree_address);
+                // merge_thread_similarity_tree
+                #pragma omp parallel for num_threads(NUM_THREADS) schedule(static)
+                for(int j = current_off_edge_index;  j < similarity_tree_length; j++){
+                    if(similarity_tree[j]==0 && thread_similarity_tree_address[j]==1){
+                        similarity_tree[j]=1;
+                    }
+                }
             } 
         }
         avail_task_num += tmp_avail_task_num;

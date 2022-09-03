@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-09-02 12:45:31
+ * @LastEditTime: 2022-09-03 11:06:35
  */
 #include "global.h"
 
@@ -129,9 +129,9 @@ void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<i
             // DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
             //map<uint32_t, uint16_t>::iterator it;
             if (off_tree_edge_map.count(key) == 1){
-                DEBUG_PRINT("edge index: %d\n", uint16_t(off_tree_edge_map.find(key)->second));
+                // DEBUG_PRINT("edge index: %d\n", uint16_t(off_tree_edge_map.find(key)->second));
                 similarity_tree[uint16_t(off_tree_edge_map.find(key)->second)] = 1;
-                DEBUG_PRINT("hash_edges: node %x, %x, %d\n", uint32_t(bfs_process1[j]), uint32_t(bfs_process2[k]), off_tree_edge_map.find(key)->second);
+                // DEBUG_PRINT("hash_edges: node %x, %x, %d\n", uint32_t(bfs_process1[j]), uint32_t(bfs_process2[k]), off_tree_edge_map.find(key)->second);
             } 
         }
     }
@@ -146,12 +146,4 @@ void check_next_range_similarity_tree(int i, int *similarity_tree, int total_ran
     }
     DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t check_next_range\t %d/%d \t%.2f%%\n"\
                 ,i,     eqaul_zero_num,     total_range,     100*(double)eqaul_zero_num/total_range);
-}
-
-void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address){
-    for(; i < similarity_tree_length; i++){
-        if(similarity_tree[i]==0 && thread_similarity_tree_address[i]==1){
-            similarity_tree[i]=1;
-        }
-    }
 }
