@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <math.h>
 #include <sys/time.h>
+#include <string.h>
 
 #define NUM_THREADS 32
 #define task_pool_size 64
@@ -60,17 +61,26 @@ extern int N;
 extern int L;
 extern int largest_volume_point;
 
+extern vector<vector<vector<double>>> adja_list;
+extern double *dis;
+extern int *parent;
+extern int *no_weight_dis;
+
+//recover_off_edges.cpp
+int calculate_beta(int i, int j);
+void beta_BFS(int beta, std::vector<int> &queue, int root);
 
 int calculate_belta(int i, MatrixXd &LG, int largest_volume_point, int edge_point1, int edge_point2);
 void belta_BFS(int belta, MatrixXd &LG, std::vector<int> &candidate_point_set, int edge_point);
 void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<double>> &copy_off_tree_edge);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
+void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address);
 
 void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<double>> &off_tree_edge, vector<vector<double>> &copy_off_tree_edge);
 void write_edge(vector<vector<double>> &edge, const char *file);
+int get_LCA(int i, int j, int *parent, int *no_weight_dis);
 
-void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address);
 void test_LCA_find_update(MatrixXd &LG, int largest_volume_point);
 void LCA_find(int *find, MatrixXd &LG, int largest_volume_point);
 int calculate_belta_from_find(int i, int *find, int edge_point1, int edge_point2);

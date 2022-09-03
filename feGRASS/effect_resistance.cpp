@@ -1,5 +1,10 @@
 #include "global.h"
 
+vector<vector<vector<double>>> adja_list;
+double *dis;
+int *parent;
+int *no_weight_dis;
+
 /**
  * 根据树的边集表示，创建邻接表
 */
@@ -106,7 +111,7 @@ void debug_print_path(int i, int j, int *parent, int *no_weight_dis){
  * 计算i, j的最近公共祖先节点
  * 使用parent数组
 */
-static inline int get_LCA(int i, int j, int *parent, int *no_weight_dis){
+int get_LCA(int i, int j, int *parent, int *no_weight_dis){
     if(no_weight_dis[i] < no_weight_dis[j]){
         int tmp = i;
         i = j;
@@ -140,12 +145,12 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
 
-    double *dis = (double *)malloc(M*sizeof(double));   //每个点到根节点距离
-    int *parent = (int *)malloc(M*sizeof(int));         //每个点父节点数组
-    int *no_weight_dis = (int *)malloc(M*sizeof(int));  //每个点到根节点无权重距离
+    adja_list.resize(M);
+    dis = (double *)malloc(M*sizeof(double));   //每个点到根节点距离
+    parent = (int *)malloc(M*sizeof(int));         //每个点父节点数组
+    no_weight_dis = (int *)malloc(M*sizeof(int));  //每个点到根节点无权重距离
 
     //创建生成树的邻接表
-    vector<vector<vector<double>>> adja_list(M);
     create_adja_list(spanning_tree, adja_list);
     printTime("adja list\t\t took %f ms\n")
     // debug_print_adja(adja_list);
@@ -178,8 +183,6 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
         edge.erase(edge.begin(),edge.end());
     }
     printTime("E-V+1(off-tree) get_LCA\t\t took %f ms\n")
-
-    free(dis);
 }
 
 void write_edge(vector<vector<double>> &edge, const char *file){
