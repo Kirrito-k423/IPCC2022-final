@@ -176,7 +176,7 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
         // int d_ = no_weight_dis[edge_point1] + no_weight_dis[edge_point2] - 2*no_weight_dis[LCA_point];
         // printf("no_weight_dis(%d, %d)=%d\n", edge_point1, edge_point2, d_);
         double eff_resist = dis[edge_point1] + dis[edge_point2] - 2*dis[LCA_point];
-        edge.push_back(eff_resist);
+        edge.push_back(eff_resist * off_tree_edge[i][3]);
 
         edge.push_back(off_tree_edge[i][3]);
         copy_off_tree_edge.push_back(edge);
