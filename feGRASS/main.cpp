@@ -260,7 +260,7 @@ int main(int argc, const char * argv[]) {
         // store a pair of directed edges to reduce lookup time
         uint32_t key1 = (uint32_t(copy_off_tree_edge[i][0]) << 16) | uint32_t(copy_off_tree_edge[i][1]);
         uint32_t key2 = (uint32_t(copy_off_tree_edge[i][1]) << 16) | uint32_t(copy_off_tree_edge[i][0]);
-        printf("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
+        // DEBUG_PRINT("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
         off_tree_edge_map[key1] = uint16_t(i);
         off_tree_edge_map[key2] = uint16_t(i);
         //off_tree_edge_map.insert(pair<uint32_t, uint16_t>(key, i));        
