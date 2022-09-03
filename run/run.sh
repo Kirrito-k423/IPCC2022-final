@@ -48,7 +48,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-coord_file_list=(./byn.mtx ./byn1.mtx ./g-3989-158400.mtx ./g-6997-83688.mtx ./ks2010.mtx)
+coord_file_list=(./byn.mtx ./byn1.mtx ./g-3989-158400.mtx ./g-6997-83688.mtx ./ks2010-conv.mtx)
 ref_file_list=(refer-byn.txt refer-byn1.txt refer-3989-158400.txt refer-6997-83688.txt result.txt)
 #run
 stdbuf --output=L ../build/bin/main ${coord_file_list[${case}]} 2>&1 |tee -a $LOG
