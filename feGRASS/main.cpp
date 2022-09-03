@@ -101,9 +101,9 @@ int main(int argc, const char * argv[]) {
     gettimeofday(&start, NULL);
 
     //find the point that has the largest volume
-    largest_volume_point=0;
-    double largest_volume=0;
-    for (int i=1;i<=M;i++){
+    largest_volume_point=1;
+    double largest_volume=volume[1];
+    for (int i=2;i<=M;i++){
         if (volume[i]>largest_volume){
             largest_volume_point=i;
             largest_volume=volume[i];
