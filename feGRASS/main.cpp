@@ -229,31 +229,6 @@ int main(int argc, const char * argv[]) {
 
     printTime("Construct off-tree edge\t\t took %f ms\n")
 
-    //attain the Laplace matrix of spanning tree
-    //restore in SparseMatrix of Eigen
-    //that can get inverse matrix by LU decompose
-
-    //construct the Laplace matrix of spanning tree
-    MatrixXd LG=Eigen::MatrixXd::Zero(M,N);
-    for (int i=0; i<spanning_tree.size(); i++) {
-        int edge_point1 = int(spanning_tree[i][0]);
-        int edge_point2 = int(spanning_tree[i][1]);
-        double edge_Wij = spanning_tree[i][3];
-        LG(edge_point1-1,edge_point2-1) =- edge_Wij;
-        LG(edge_point2-1,edge_point1-1) =- edge_Wij;
-        LG(edge_point2-1,edge_point2-1) += edge_Wij; //对角线
-        LG(edge_point1-1,edge_point1-1) += edge_Wij; //对角线
-    }
-
-    printTime("Construct Laplace matrix\t took %f ms\n")
-
-    for (int i=0; i<M; i++) { if(i>30){break;}
-        for (int j=0; j<N; j++) { if(j>30){break;}
-            cout<<LG(i,j)<<' ';
-        }
-        cout<<endl;
-    }
-
     //calculate the resistance of each off_tree edge
     vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
     caculate_resistance(spanning_tree, off_tree_edge, copy_off_tree_edge);
@@ -291,9 +266,6 @@ int main(int argc, const char * argv[]) {
     
     // int i=0;
     int max_num_additive_tree = max(int(copy_off_tree_edge.size()/25), 2);
-    // test_LCA_find_update(LG, largest_volume_point);
-    int find[M+1];//Joint search set
-    LCA_find(find, LG, largest_volume_point);
 
 
     struct timeval loop_begin_time, loop_end_time;
@@ -319,7 +291,7 @@ int main(int argc, const char * argv[]) {
             int edge_point2 = int(copy_off_tree_edge[i][1]);
             // int belta = calculate_belta(i, &LG ,largest_volume_point, edge_point1, edge_point2 );
             // int belta = calculate_belta_from_find(i, find, edge_point1, edge_point2 );
-            int belta = calculate_beta(edge_point1, edge_point2);
+            int beta = calculate_beta(edge_point1, edge_point2);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
@@ -329,8 +301,7 @@ int main(int argc, const char * argv[]) {
 
             //choose two nodes as root node respectively to run belta bfs
             vector<int> bfs_process1;
-            // belta_BFS(belta, LG, bfs_process1, edge_point1);
-            beta_BFS(belta, bfs_process1, edge_point1);
+            beta_BFS(beta, bfs_process1, edge_point1);
             // printf("%d(%d): ", edge_point1, belta);
             // for(int j=0; j<bfs_process1.size(); j++){
             //     printf("%d ", bfs_process1[j]);
@@ -338,8 +309,7 @@ int main(int argc, const char * argv[]) {
             // printf("\n");
 
             vector<int> bfs_process2;
-            beta_BFS(belta, bfs_process2, edge_point2);
-            // belta_BFS(belta, LG, bfs_process2, edge_point2);
+            beta_BFS(beta, bfs_process2, edge_point2);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
