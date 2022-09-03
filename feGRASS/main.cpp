@@ -146,7 +146,7 @@ int main(int argc, const char * argv[]) {
     //free the memory
     queue<int>().swap(process);
 
-    printTime("BFS point-distance \t\t took %f ms\n")
+    printTime("BFS G get no weight distance \t\t took %f ms\n")
 
     //construct the edge-weight matrix
     vector<double> edge; // [point_index1, point_index2, W_eff, W_ij]
@@ -172,11 +172,11 @@ int main(int argc, const char * argv[]) {
             edge.erase(edge.begin(),edge.end());
         }
     }
+    printTime("Create edge-weight matrix\t took %f ms\n")
 
     //sort according to the weight of each edge
     stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
-
-    printTime("Const Sort edge-weight matrix\t took %f ms\n")
+    printTime("Sort G edge\t took %f ms\n")
 
     //run kruscal to get largest-effect-weight spanning tree
     // MEWST = maximum-effective-weight spanning tree
@@ -245,7 +245,7 @@ int main(int argc, const char * argv[]) {
     stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
     // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
 
-    printTime("Sort & Init add edge \t\t took %f ms\n");
+    printTime("Sort off-tree edges \t\t took %f ms\n");
 
     /*
     construct global off-tree edges hash map, for an off-tree edge 
@@ -271,25 +271,21 @@ int main(int argc, const char * argv[]) {
     //ou.close();
     printTime("Construct off-tree edge hash map\t\t took %f ms\n")
 
-    //add some edge into spanning tree
-    int num_additive_tree=0;
-    int similarity_tree_length=copy_off_tree_edge.size()/cut_similarity_range;
-    int similarity_tree[similarity_tree_length];//check whether a edge is similar to the edge added before
-    for (int i=0; i<similarity_tree_length; i++) {
-        similarity_tree[i]=0;
-    }
+    /** 恢复边阶段
+     * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数
+     * 每次对块内的每条off-tree边计算与其相似的边(beta-BFS)，可以并行执行
+     * 之后串行进行恢复-排除操作。之后从下一块重复操作。
+    */
+    int num_additive_tree=0;    //记录添加边的数量
+    int max_num_additive_tree = max(int(copy_off_tree_edge.size()/25), 2);  //最大需要添加的边
+    int similarity_tree_length=copy_off_tree_edge.size()/cut_similarity_range;  //trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
+    int similarity_tree[similarity_tree_length];    //标记边是否和之前添加的边相似，相似则不能添加
+    memset(similarity_tree, 0, sizeof(similarity_tree));
+    int current_off_edge_index=0;   //当前遍历到的copy_off_edge的索引
 
-
-    
-    
-    // 动态大小的 任务池
-    int task_list[task_pool_size];
+    int task_list[task_pool_size];  //
     int * similarity_tree_list = (int *)malloc(sizeof(int) *task_pool_size * similarity_tree_length);
-    // 并行初始化？
     memset(similarity_tree_list, 0, sizeof(int) * task_pool_size * similarity_tree_length);
-    
-    int current_off_edge_index=0;
-    int max_num_additive_tree = max(int(copy_off_tree_edge.size()/25), 2);
 
     //debug 打印并行有效命中率
     int avail_task_num=0;
@@ -301,7 +297,8 @@ int main(int argc, const char * argv[]) {
     printTime("before while \t\t took %f ms\n");
 
     while(1){
-        // 从similarity里确定分配的任务列表
+        gettimeofday(&startTime, NULL);
+        //填充未被排除的边到任务列表
         int i=current_off_edge_index;
         int task_list_index=0;
         while(task_list_index < task_pool_size){
@@ -318,12 +315,9 @@ int main(int argc, const char * argv[]) {
         TIME_PRINT("\ncopy_off_tree_edge divide %d/%ld \t took %f ms\n",current_off_edge_index,copy_off_tree_edge.size(), tmp_past_time);
         gettimeofday(&startTime, NULL);
 
-        // 并行执行任务，产生结果到各自的similar
+        // 并行获得每条off-tree边的相似边列表
         #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic)
         for(i=0; i<task_pool_size; i++){
-            if(task_list[i]>similarity_tree_length){
-                continue;
-            }
             int edge_point1 = int(copy_off_tree_edge[task_list[i]][0]);
             int edge_point2 = int(copy_off_tree_edge[task_list[i]][1]);
             int beta = calculate_beta(edge_point1, edge_point2);
@@ -378,6 +372,7 @@ int main(int argc, const char * argv[]) {
                 }
                 int * thread_similarity_tree_address = similarity_tree_list + i*(similarity_tree_length);
                 // merge_thread_similarity_tree
+                //使用or操作进行向量化？
                 #pragma omp parallel for num_threads(NUM_THREADS) schedule(static)
                 for(int j = current_off_edge_index;  j < similarity_tree_length; j++){
                     if(similarity_tree[j]==0 && thread_similarity_tree_address[j]==1){
@@ -407,7 +402,7 @@ int main(int argc, const char * argv[]) {
     gettimeofday(&loop_end_time, NULL);
     subTime[1]=(loop_end_time.tv_sec-loop_begin_time.tv_sec)*1000+(loop_end_time.tv_usec-loop_begin_time.tv_usec)/1000.0;
     // subTime[4] += (loop_end_time.tv_sec-startTime.tv_sec)*1000+(loop_end_time.tv_usec-startTime.tv_usec)/1000.0;
-    printTime("\ncopy_off_tree_edge End \t\t took %f ms\n\n")
+    TIME_PRINT("Recover off-tree edge\t\t took %f ms\n\n", subTime[1]);
 
     gettimeofday(&end, NULL);
     printf("Using time : %f ms\n", (end.tv_sec-start.tv_sec)*1000+(end.tv_usec-start.tv_usec)/1000.0);
