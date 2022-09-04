@@ -1,6 +1,6 @@
 feGRASS.tar
 build/*
 .vscode
-*.log
+run/*.log
 result.txt
 # run/*.txt
