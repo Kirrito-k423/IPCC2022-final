@@ -310,6 +310,9 @@ int main(int argc, const char * argv[]) {
             /**** Iteration Log. Yuo delete the printf call. ****/
             if ((num_additive_tree%64)==0) {
                 printf("num_additive_tree : %d\n", num_additive_tree);
+                gettimeofday(&loop_end_time, NULL);
+                double time_per_64 =(loop_end_time.tv_sec-loop_begin_time.tv_sec)*1000+(loop_end_time.tv_usec-loop_begin_time.tv_usec)/1000.0;
+                printf("time_per_64 time : %f ms\n", time_per_64);
             }
             spanning_tree.push_back(copy_off_tree_edge[i]);
 
