@@ -5,7 +5,7 @@
  # @Author: Shaojie Tan
  # @Date: 2022-08-26 15:39:02
  # @LastEditors: Shaojie Tan
- # @LastEditTime: 2022-08-31 18:47:31
+ # @LastEditTime: 2022-09-04 11:48:50
 ### 
 if [ $# -eq 0 ]; then
     case=0
@@ -49,7 +49,7 @@ if [ $? -ne 0 ]; then
 fi
 
 coord_file_list=(./byn.mtx ./byn1.mtx ./g-3989-158400.mtx ./g-6997-83688.mtx ./ks2010-conv.mtx)
-ref_file_list=(refer-byn.txt refer-byn1.txt refer-3989-158400.txt refer-6997-83688.txt result.txt)
+ref_file_list=(refer-byn.txt refer-byn1.txt refer-3989-158400.txt refer-6997-83688.txt refer-ks2010.txt)
 #run
 stdbuf --output=L ../build/bin/main ${coord_file_list[${case}]} 2>&1 |tee -a $LOG
 
