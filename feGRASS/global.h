@@ -4,11 +4,11 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-27 15:58:17
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-09-02 20:22:54
+ * @LastEditTime: 2022-09-04 18:08:05
  */
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
-// #include <omp.h>
+#include <omp.h>
 // #include "Eigen/Dense"
 // #include "Eigen/LU"
 #include <stack>

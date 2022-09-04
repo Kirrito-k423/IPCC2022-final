@@ -190,11 +190,13 @@ int main(int argc, const char * argv[]) {
     int tmin;
     int tmax;
     //kruscal
+    // #pragma omp parallel for
     for (int i=0; i<edge_matrix.size(); i++) {
         int edge_point1 = int(edge_matrix[i][0]);
         int edge_point2 = int(edge_matrix[i][1]);
-        if (assistance[edge_point1]!=assistance[edge_point2]){
+        if (assistance[edge_point1]!=assistance[edge_point2] && k<M-1){
             k++;
+            //TO DO: spanning_tree[32] 或者 atomic 操作
             spanning_tree.push_back(edge_matrix[i]);
             tmin = assistance[edge_point1]>=assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
             tmax = assistance[edge_point1]< assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
@@ -204,9 +206,9 @@ int main(int argc, const char * argv[]) {
                 }
             }
         }
-        if (k==M-1){
-            break;
-        }
+        // if (k==M-1){
+        //     break;
+        // }
     }
 
     printTime("Run kruscal\t\t\t took %f ms\n")

@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-29 19:59:51
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-09-03 21:06:56
+ * @LastEditTime: 2022-09-04 18:44:50
  */
 #include "global.h"
 
@@ -102,16 +102,17 @@ void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<i
 void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, map<uint32_t, uint16_t> &off_tree_edge_map){
     //mark the edge that is similar to the edge which wants to be added
-    int point_pair=0;
-    int hit_num=0;
-    int avail_hit=0;
+    // int hit_num=0;
+    // int avail_hit=0;
 
-    int hit_cut_num=0;
-    int avail_cut_hit=0;
+    // int hit_cut_num=0;
+    // int avail_cut_hit=0;
 
-    int hit_next_num=0;
-    int avail_next_hit=0;
-    #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic) collapse(2)
+    // int hit_next_num=0;
+    // int avail_next_hit=0;
+
+    //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
+    #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
     for (int j=0; j<bfs_process1.size(); j++) {
         for (int k=0; k<bfs_process2.size(); k++) {
             if (bfs_process2[k]==0 ||bfs_process1[j]==0) {
@@ -120,7 +121,6 @@ void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<i
             if (bfs_process1[j]==bfs_process2[k]) {
                 continue;
             }
-            point_pair++;
             uint32_t key = (uint32_t(bfs_process1[j]) << 16) | uint32_t(bfs_process2[k]);
             // DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
             //map<uint32_t, uint16_t>::iterator it;
