@@ -315,6 +315,8 @@ int main(int argc, const char * argv[]) {
         gettimeofday(&startTime, NULL);
 
         // 并行获得每条off-tree边的相似边列表
+        similar_list.clear();
+        similar_list.resize(task_pool_size);
         #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic)
         for(i=0; i<task_pool_size; i++){
             int edge_point1 = int(copy_off_tree_edge[task_list[i]][0]);
