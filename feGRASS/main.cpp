@@ -316,6 +316,7 @@ int main(int argc, const char * argv[]) {
             // int belta = calculate_belta(i, &LG ,largest_volume_point, edge_point1, edge_point2 );
             // int belta = calculate_belta_from_find(i, find, edge_point1, edge_point2 );
             int beta = calculate_beta(edge_point1, edge_point2);
+            DEBUG_PRINT("\nbeta %d",beta);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
