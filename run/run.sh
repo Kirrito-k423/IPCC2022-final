@@ -53,9 +53,4 @@ ref_file_list=(refer-byn.txt refer-byn1.txt refer-3989-158400.txt refer-6997-836
 #run
 stdbuf --output=L ../build/bin/main ${coord_file_list[${case}]} 2>&1 |tee -a $LOG
 
-#check if run success
-if [ $? -ne 0 ]; then
-    echo "Run failed"
-    exit 1
-fi
 python3 check.py result.txt ${ref_file_list[${case}]} 2>&1 |tee -a $LOG

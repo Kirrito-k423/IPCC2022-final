@@ -72,8 +72,8 @@ int calculate_beta(int i, int j);
 void beta_BFS(int beta, std::vector<int> &queue, int root);
 void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<double>> &copy_off_tree_edge);
-void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            int *similarity_tree, map<uint32_t, uint16_t> &copy_off_tree_edge);
+void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
+                            vector<int> &similar_list, map<uint32_t, uint16_t> &copy_off_tree_edge);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address);
 
