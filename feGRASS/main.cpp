@@ -12,25 +12,39 @@ int M;
 int N;
 int L;
 int largest_volume_point;
+double first_subTime[5]={0,0,0,0,0}; // 伪逆， 循环总时间， 循环内三部分时间
 double subTime[5]={0,0,0,0,0}; // 伪逆， 循环总时间， 循环内三部分时间
+
+int task_pool_size;
 
 bool compare(const vector<double> &a,const vector<double> &b){
     return a[2]>b[2];
 }
 
 void print_time_proportion(double total_time){
-    printf("等效电阻\t循环总时间\t 任务划分\t OMP\t merge\n");
+    printf("等效电阻\t循环1总时间\t belta\t\t 2 BFS\t\t OMP_similarity\n");
     int i;
-    int length=sizeof(subTime)/sizeof(subTime[0]);
+    int length=sizeof(first_subTime)/sizeof(first_subTime[0]);
+    for(i=0; i<length-1; i++){
+        printf("%8.2f\t",first_subTime[i]);
+    }
+    printf("%8.2f\n",first_subTime[i]);
+    for(i=0; i<length-1; i++){
+        printf("%4.2f%%\t\t",100*first_subTime[i]/total_time);
+    }
+    printf("%4.2f%%\n",100*first_subTime[i]/total_time);
+
+    printf("\n等效电阻\t循环2总时间\t 任务划分\t OMP\t merge\n");
+    length=sizeof(subTime)/sizeof(subTime[0]);
     for(i=0; i<length-1; i++){
         printf("%8.2f\t",subTime[i]);
     }
     printf("%8.2f\n",subTime[i]);
     for(i=0; i<length-1; i++){
-        printf("%.2f%%\t\t",100*subTime[i]/total_time);
+        printf("%4.2f%%\t\t",100*subTime[i]/total_time);
     }
-    printf("%.2f%%\n",100*subTime[i]/total_time);
-    printf("循环+伪逆 占比 %.2f%%\n", 100*(subTime[0]+subTime[1])/total_time);
+    printf("%4.2f%%\n",100*subTime[i]/total_time);
+    printf("等效电阻+循环12 占比 %.2f%%\n", 100*(first_subTime[1]+subTime[0]+subTime[1])/total_time);
 }
 
 int main(int argc, const char * argv[]) {
@@ -281,8 +295,94 @@ int main(int argc, const char * argv[]) {
     int similarity_tree_length=copy_off_tree_edge.size()/cut_similarity_range;  //trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
     int similarity_tree[similarity_tree_length];    //标记边是否和之前添加的边相似，相似则不能添加
     memset(similarity_tree, 0, sizeof(similarity_tree));
-    int curr_edge_index=0;   //当前遍历到的copy_off_edge的索引
 
+    DEBUG_PRINT("max_num_additive_tree %d\n", max_num_additive_tree);
+    //第一部分: 细粒度并行 前first_step_OMP_percentage部分
+    int first_num_additive_tree = max_num_additive_tree * first_step_OMP_percentage;
+    DEBUG_PRINT("first_num_additive_tree %d\n", first_num_additive_tree);
+
+    struct timeval loop_begin_time, loop_end_time;
+    double tmp_past_time;
+    gettimeofday(&loop_begin_time, NULL);
+    printTime("before first while \t\t took %f ms\n");
+
+    int i;
+    for (i=0; i<copy_off_tree_edge.size(); i++) {
+        //if there has enough off-tree edge added into spanning tree, the work has been finished
+        if (num_additive_tree == first_num_additive_tree) {
+            DEBUG_PRINT("first OMP break i %d\n", i);
+            break;
+        }
+        //if adge is not the similar tree,you can add it into spanning tree
+        if (similarity_tree[i]==0){
+            num_additive_tree++;
+            /**** Iteration Log. Yuo delete the printf call. ****/
+            if ((num_additive_tree%64)==0) {
+                printf("num_additive_tree : %d\n", num_additive_tree);
+                gettimeofday(&loop_end_time, NULL);
+                double time_per_64 =(loop_end_time.tv_sec-loop_begin_time.tv_sec)*1000+(loop_end_time.tv_usec-loop_begin_time.tv_usec)/1000.0;
+                printf("time_per_64 time : %f ms\n", time_per_64);
+            }
+            spanning_tree.push_back(copy_off_tree_edge[i]);
+
+            int edge_point1 = int(copy_off_tree_edge[i][0]);
+            int edge_point2 = int(copy_off_tree_edge[i][1]);
+            // int belta = calculate_belta(i, &LG ,largest_volume_point, edge_point1, edge_point2 );
+            // int belta = calculate_belta_from_find(i, find, edge_point1, edge_point2 );
+            int beta = calculate_beta(edge_point1, edge_point2);
+            DEBUG_PRINT("\nbeta %d",beta);
+
+            gettimeofday(&endTime, NULL);
+            tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
+            first_subTime[2] += tmp_past_time;
+            TIME_PRINT("\ncopy_off_tree_edge belta %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
+            gettimeofday(&startTime, NULL);
+
+            //choose two nodes as root node respectively to run belta bfs
+            vector<int> bfs_process1;
+            beta_BFS(beta, bfs_process1, edge_point1);
+            // printf("%d(%d): ", edge_point1, belta);
+            // for(int j=0; j<bfs_process1.size(); j++){
+            //     printf("%d ", bfs_process1[j]);
+            // }
+            // printf("\n");
+
+            vector<int> bfs_process2;
+            beta_BFS(beta, bfs_process2, edge_point2);
+
+            gettimeofday(&endTime, NULL);
+            tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
+            first_subTime[3] += tmp_past_time;
+            TIME_PRINT("copy_off_tree_edge 2 BFS %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
+            gettimeofday(&startTime, NULL);
+
+            DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
+                        bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
+
+            // original adjust similarity tree
+            // adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, copy_off_tree_edge);
+
+            // using hash map to store off tree edges
+            // DEBUG_PRINT("start to adjust similarity tree\n");
+            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, off_tree_edge_map);
+
+            // 假如按照论文，可以写同一个similarity_tree_list（不行，尝试过了，结果有几个是错的）
+            gettimeofday(&endTime, NULL);
+            tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
+            first_subTime[4] += tmp_past_time;
+            TIME_PRINT("copy_off_tree_edge similarity %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
+            gettimeofday(&startTime, NULL);
+        } 
+    }
+    gettimeofday(&loop_end_time, NULL);
+    first_subTime[1]=(loop_end_time.tv_sec-loop_begin_time.tv_sec)*1000+(loop_end_time.tv_usec-loop_begin_time.tv_usec)/1000.0;
+    first_subTime[4] += (loop_end_time.tv_sec-startTime.tv_sec)*1000+(loop_end_time.tv_usec-startTime.tv_usec)/1000.0;
+
+    //第二部分: 粗粒度并行
+    int curr_edge_index=i;   //当前遍历到的copy_off_edge的索引
+
+    int task_pool_size = get_task_pool_size(max_num_additive_tree - first_num_additive_tree);
+    DEBUG_PRINT("task_pool_size %d\n", task_pool_size);
     int task_list[task_pool_size];  //
     vector<vector<int>> similar_list(task_pool_size);
 
@@ -290,11 +390,8 @@ int main(int argc, const char * argv[]) {
     int avail_task_num=0;
     int total_task_num=0;
 
-    struct timeval loop_begin_time, loop_end_time;
-    double tmp_past_time;
     gettimeofday(&loop_begin_time, NULL);
-    printTime("before while \t\t took %f ms\n");
-
+    printTime("before first while \t\t took %f ms\n");
     while(1){
         gettimeofday(&startTime, NULL);
         //填充未被排除的边到任务列表
@@ -336,7 +433,7 @@ int main(int argc, const char * argv[]) {
             vector<int> bfs_process2;
             beta_BFS(beta, bfs_process2, edge_point2);
 
-            DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
+            DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",task_list[i],
                         bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
 
             // original adjust similarity tree
@@ -378,8 +475,8 @@ int main(int argc, const char * argv[]) {
 
         avail_task_num += tmp_avail_task_num;
         total_task_num += task_pool_size;
-        DEBUG_PRINT("copy_off_tree_edge OneLoop %d/%ld \t avail %d \t %.2f%%\n",curr_edge_index,copy_off_tree_edge.size(),
-                    tmp_avail_task_num,100*(double)tmp_avail_task_num/task_pool_size);
+        DEBUG_PRINT("copy_off_tree_edge OneLoop %d/%ld \t avail %d/%d \t %.2f%%\n",curr_edge_index,copy_off_tree_edge.size(),
+                    tmp_avail_task_num, task_pool_size, 100*(double)tmp_avail_task_num/task_pool_size);
         
         curr_edge_index += 1;
         if (num_additive_tree==max_num_additive_tree) {
@@ -394,11 +491,13 @@ int main(int argc, const char * argv[]) {
     }
     DEBUG_PRINT("copy_off_tree_edge EndLoop %d/%ld \t avail %d \t all %d \t %.2f%%\n",curr_edge_index,copy_off_tree_edge.size(),
                     avail_task_num, total_task_num, 100*(double) avail_task_num/total_task_num);
+    DEBUG_PRINT("max_num_additive_tree %d\n", max_num_additive_tree);
+    DEBUG_PRINT("first_num_additive_tree %d sub %d\n", first_num_additive_tree, max_num_additive_tree-first_num_additive_tree);
 
     gettimeofday(&loop_end_time, NULL);
     subTime[1]=(loop_end_time.tv_sec-loop_begin_time.tv_sec)*1000+(loop_end_time.tv_usec-loop_begin_time.tv_usec)/1000.0;
-    // subTime[4] += (loop_end_time.tv_sec-startTime.tv_sec)*1000+(loop_end_time.tv_usec-startTime.tv_usec)/1000.0;
-    TIME_PRINT("Recover off-tree edge\t\t took %f ms\n\n", subTime[1]);
+    subTime[4] += (loop_end_time.tv_sec-startTime.tv_sec)*1000+(loop_end_time.tv_usec-startTime.tv_usec)/1000.0;
+    TIME_PRINT("Recover off-tree edge\t\t took %f ms\n\n", first_subTime[1] + subTime[1]);
 
     gettimeofday(&end, NULL);
     printf("Using time : %f ms\n", (end.tv_sec-start.tv_sec)*1000+(end.tv_usec-start.tv_usec)/1000.0);
