@@ -3,4 +3,7 @@ build/*
 .vscode
 *.log
 result.txt
-# run/*.txt
+run/ks2010.mtx
+run/ks2010-conv.mtx
+run/refer-ks2010.txt
+!run/ks2010.tar.gz
