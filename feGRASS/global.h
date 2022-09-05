@@ -4,7 +4,7 @@
  * @Author: Shaojie Tan
  * @Date: 2022-08-27 15:58:17
  * @LastEditors: Shaojie Tan
- * @LastEditTime: 2022-09-03 09:37:15
+ * @LastEditTime: 2022-09-05 16:59:22
  */
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
@@ -25,10 +25,15 @@
 #include <string.h>
 
 #define NUM_THREADS 32
-#define task_pool_size 512
-// enum task_divide_mode {sequential, distracted}
-// #define mode sequential
+#define first_step_OMP_percentage 0.02  //第一部分OMP的解决边数的占比
+// #define task_pool_size 512           //变成由M L 确定的全局变量
+#define avail_percent 0.92
+#define search_block_size_start 512
+#define offset 10
+
 #define cut_similarity_range 3
+
+
 #define next_range 128 //DEBUG_PRINT
 
 // using namespace Eigen;
@@ -74,6 +79,8 @@ void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<i
                             int *similarity_tree, vector<vector<double>> &copy_off_tree_edge);
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             vector<int> &similar_list, map<uint32_t, uint16_t> &copy_off_tree_edge);
+void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
+                            int *similarity_tree, map<uint32_t, uint16_t> &off_tree_edge_map);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int * similarity_tree, int *thread_similarity_tree_address);
 
@@ -84,4 +91,5 @@ int get_LCA(int i, int j, int *parent, int *no_weight_dis);
 
 void print_M1_Array(string name,int * toPrint);
 void printStack(string name, stack<int> toPrint);
+int get_task_pool_size(int total_num);
 #endif
