@@ -266,17 +266,17 @@ int main(int argc, const char * argv[]) {
     with point with index i and j, hash key could be i << 16 & j
     Attention: point index should supposed less than 2^16.
     */
-    map<uint32_t, uint16_t> off_tree_edge_map;
+    map<uint64_t, uint32_t> off_tree_edge_map;
     //ofstream ou;
     //string path = "off_tree_edges.txt";
     //ou.open(path.c_str());
     for(int i = 0; i < copy_off_tree_edge.size()/cut_similarity_range; i++){
         // store a pair of directed edges to reduce lookup time
-        uint32_t key1 = (uint32_t(copy_off_tree_edge[i][0]) << 16) | uint32_t(copy_off_tree_edge[i][1]);
-        uint32_t key2 = (uint32_t(copy_off_tree_edge[i][1]) << 16) | uint32_t(copy_off_tree_edge[i][0]);
+        uint64_t key1 = ((uint64_t)(copy_off_tree_edge[i][0]) << 32) | uint64_t(copy_off_tree_edge[i][1]);
+        uint64_t key2 = ((uint64_t)(copy_off_tree_edge[i][1]) << 32) | uint64_t(copy_off_tree_edge[i][0]);
         // DEBUG_PRINT("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
-        off_tree_edge_map[key1] = uint16_t(i);
-        off_tree_edge_map[key2] = uint16_t(i);
+        off_tree_edge_map[key1] = uint32_t(i);
+        off_tree_edge_map[key2] = uint32_t(i);
         //off_tree_edge_map.insert(pair<uint32_t, uint16_t>(key, i));        
         // char s[100];
         // sprintf(s, "node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));

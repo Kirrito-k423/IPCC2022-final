@@ -102,7 +102,7 @@ void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<i
 
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            int *similarity_tree, map<uint32_t, uint16_t> &off_tree_edge_map){
+                            int *similarity_tree, map<uint64_t, uint32_t> &off_tree_edge_map){
     //mark the edge that is similar to the edge which wants to be added
 
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
@@ -115,12 +115,12 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
             if (bfs_process1[j]==bfs_process2[k]) {
                 continue;
             }
-            uint32_t key = (uint32_t(bfs_process1[j]) << 16) | uint32_t(bfs_process2[k]);
+            uint64_t key = ((uint64_t)(bfs_process1[j]) << 32) | (uint64_t)(bfs_process2[k]);
             // DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
-            //map<uint32_t, uint16_t>::iterator it;
+            //map<uint64_t, uint32_t>::iterator it;
             if (off_tree_edge_map.count(key) == 1){
                 // DEBUG_PRINT("edge index: %d\n", uint16_t(off_tree_edge_map.find(key)->second));
-                similarity_tree[uint16_t(off_tree_edge_map.find(key)->second)] = 1;
+                similarity_tree[(uint32_t)(off_tree_edge_map.find(key)->second)] = 1;
                 // DEBUG_PRINT("hash_edges: node %x, %x, %d\n", uint32_t(bfs_process1[j]), uint32_t(bfs_process2[k]), off_tree_edge_map.find(key)->second);
             } 
         }
@@ -128,7 +128,7 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                         vector<int> &similar_list, map<uint32_t, uint16_t> &off_tree_edge_map){
+                         vector<int> &similar_list, map<uint64_t, uint32_t> &off_tree_edge_map){
     //mark the edge that is similar to the edge which wants to be added
     int point_pair=0;
     int hit_num=0;
@@ -151,9 +151,9 @@ void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bf
                 continue;
             }
             point_pair++;
-            uint32_t key = (uint32_t(bfs_process1[j]) << 16) | uint32_t(bfs_process2[k]);
+            uint64_t key = ((uint64_t)(bfs_process1[j]) << 32) | (uint64_t)(bfs_process2[k]);
             // DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
-            //map<uint32_t, uint16_t>::iterator it;
+            //map<uint64_t, uint32_t>::iterator it;
             if (off_tree_edge_map.count(key) == 1){
                 // DEBUG_PRINT("edge index: %d\n", uint16_t(off_tree_edge_map.find(key)->second));
                 similar_list.push_back(off_tree_edge_map.find(key)->second);
