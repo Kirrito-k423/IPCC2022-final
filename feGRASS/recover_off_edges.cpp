@@ -102,7 +102,7 @@ void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<i
 
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            int *similarity_tree, map<uint64_t, uint32_t> &off_tree_edge_map){
+                            int *similarity_tree, map<uint64_t, uint32_t> &off_tree_edge_map, vector<set<int>> &G_adja){
     //mark the edge that is similar to the edge which wants to be added
 
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
@@ -113,6 +113,9 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
                 continue;
             }
             if (bfs_process1[j]==bfs_process2[k]) {
+                continue;
+            }
+            if(G_adja[bfs_process1[j]-1].count(bfs_process2[k])==0){  //k is not adja of j
                 continue;
             }
             uint64_t key = ((uint64_t)(bfs_process1[j]) << 32) | (uint64_t)(bfs_process2[k]);

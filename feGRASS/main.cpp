@@ -249,6 +249,16 @@ int main(int argc, const char * argv[]) {
     //ou.close();
     printTime("Construct off-tree edge hash map\t\t took %f ms\n")
 
+
+    //图G的邻接表
+    vector<set<int>> G_adja(M);
+    for(int i=0; i<M; i++){
+        for(int j=0; j<triple2[i].size(); j++){
+            G_adja[i].insert(triple2[i][j][ROW]);
+        }
+    }
+    printTime("Construct G-adja list\t\t took %f ms\n")
+
     /** 恢复边阶段
      * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数
      * 每次对块内的每条off-tree边计算与其相似的边(beta-BFS)，可以并行执行
@@ -318,7 +328,7 @@ int main(int argc, const char * argv[]) {
                         bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, off_tree_edge_map);
+            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, off_tree_edge_map, G_adja);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
