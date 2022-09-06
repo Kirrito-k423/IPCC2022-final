@@ -1,9 +1,8 @@
 CC = g++
 MPICC = mpicc
 
-debugFlag= -g
-LIB = -lm 
-C_FLAGS= -O3 -fopenmp $(LIB) ${debugFlag}
+C_FLAGS= -O3 -fopenmp 
+LIB = -lgomp
 # C_FLAGS= -fopenmp $(LIB) ${debugFlag}
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) ${debugFlag}
 
@@ -13,20 +12,22 @@ BUILD_DIR = build/bin
 
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJ = $(SRCS:.cpp=.o)
+DEBUG_OBJ = $(SRCS:.cpp=_debug.o)
+TIME_OBJ = $(SRCS:.cpp=_time.o)
 FILENAME = $(SRCS:.cpp=)
 
 .DEFAULT_GOAL := all
-all : ${SRCS}
+all : ${OBJ}
 	echo "compiling $(SRC_DIR) ${FILENAME}"
-	$(CC) $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+	$(CC) $^ $(LIB) -o $(BUILD_DIR)/main
 
-debugPrint: ${SRCS}
+debugPrint: ${DEBUG_OBJ}
 	echo "compiling $(SRC_DIR) ${FILENAME}"
-	$(CC) -DDEBUG -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+	$(CC) $^ $(LIB) -o $(BUILD_DIR)/main
 
-timePrint: ${SRCS}
+timePrint: ${TIME_OBJ}
 	echo "compiling $(SRC_DIR) ${FILENAME}"
-	$(CC) -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+	$(CC) $^ $(LIB) -o $(BUILD_DIR)/main
 
 mpi: ${SRCS}
 	echo "compiling $(SRC_DIR) ${FILENAME}"
@@ -40,7 +41,12 @@ timeMpi: ${SRCS}
 	echo "compiling $(SRC_DIR) ${FILENAME}"
 	$(MPICC) -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
 
-
+%.o: %.cpp
+	$(CC) $(C_FLAGS) -c $< -o $@ 
+%_debug.o: %.cpp
+	$(CC) -DDEBUG -DTIME $(C_FLAGS) -c $< -o $@ 
+%_time.o: %.cpp
+	$(CC) -DTIME $(C_FLAGS) -c $< -o $@ 
 
 
 checkdirs: $(BUILD_DIR)
@@ -49,4 +55,4 @@ $(BUILD_DIR):
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR)/main *.o
+	rm -rf $(BUILD_DIR)/main ${SRC_DIR}/*.o
