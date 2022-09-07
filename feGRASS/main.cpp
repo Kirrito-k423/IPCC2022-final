@@ -1,5 +1,7 @@
+#include "common/graph.h"
+#include "parlay/sequence.h"
+#include "MST.h"
 #include "global.h"
-
 
 #define ROW 0
 #define COLUMN 1
@@ -191,6 +193,10 @@ int main(int argc, const char * argv[]) {
     //sort according to the weight of each edge
     stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
     printTime("Sort G edge\t took %f ms\n")
+
+
+    wghEdgeArray<vertexId,edgeWeight> In;
+    parlay::sequence<edgeId> Out;
 
     //run kruscal to get largest-effect-weight spanning tree
     // MEWST = maximum-effective-weight spanning tree

@@ -1,44 +1,43 @@
 CC = g++
 MPICC = mpicc
 
-C_FLAGS= -O3 -fopenmp 
-LIB = -lgomp
-# C_FLAGS= -fopenmp $(LIB) ${debugFlag}
-# C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) ${debugFlag}
+MST_CFLAGS = -mcx16 -std=c++17 -DNDEBUG -DPARLAY_OPENMP -I"parallelKruskal"
+MST_LFLAGS = -DPARLAY_OPENMP -ldl
 
-INCLUDEPATH = feGRASS
+INCLUDE = -IfeGRASS
+C_FLAGS= -O3 -fopenmp $(INCLUDE) $(MST_CFLAGS)
+L_FLAGS = -fopenmp $(MST_LFLAGS)
+
 SRC_DIR = feGRASS
 BUILD_DIR = build/bin
+MST_SRC = parallelKruskal
 
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
-OBJ = $(SRCS:.cpp=.o)
-DEBUG_OBJ = $(SRCS:.cpp=_debug.o)
-TIME_OBJ = $(SRCS:.cpp=_time.o)
+OBJ = $(SRCS:.cpp=.o) $(MST_SRC)/MST.o
+DEBUG_OBJ = $(SRCS:.cpp=_debug.o) $(MST_SRC)/MST.o
+TIME_OBJ = $(SRCS:.cpp=_time.o) $(MST_SRC)/MST.o
 FILENAME = $(SRCS:.cpp=)
 
-.DEFAULT_GOAL := all
-all : ${OBJ}
-	echo "compiling $(SRC_DIR) ${FILENAME}"
-	$(CC) $^ $(LIB) -o $(BUILD_DIR)/main
+.DEFAULT_GOAL := main
+main: ${OBJ}
+	$(CC) $^ $(L_FLAGS) -o $(BUILD_DIR)/main
+
+$(MST_SRC)/MST.o:
+	make -C parallelKruskal
 
 debugPrint: ${DEBUG_OBJ}
-	echo "compiling $(SRC_DIR) ${FILENAME}"
-	$(CC) $^ $(LIB) -o $(BUILD_DIR)/main
+	$(CC) $^ $(L_FLAGS) -o $(BUILD_DIR)/main
 
 timePrint: ${TIME_OBJ}
-	echo "compiling $(SRC_DIR) ${FILENAME}"
-	$(CC) $^ $(LIB) -o $(BUILD_DIR)/main
+	$(CC) $^ $(L_FLAGS) -o $(BUILD_DIR)/main
 
 mpi: ${SRCS}
-	echo "compiling $(SRC_DIR) ${FILENAME}"
 	$(MPICC) $^ $(C_FLAGS) -o $(BUILD_DIR)/main
 
 debugMpi: ${SRCS}
-	echo "compiling $(SRC_DIR) ${FILENAME}"
 	$(MPICC) -DDEBUG -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
 
 timeMpi: ${SRCS}
-	echo "compiling $(SRC_DIR) ${FILENAME}"
 	$(MPICC) -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
 
 %.o: %.cpp
@@ -56,3 +55,4 @@ $(BUILD_DIR):
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)/main ${SRC_DIR}/*.o
+	make clean -C parallelKruskal
