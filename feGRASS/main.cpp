@@ -393,7 +393,7 @@ int main(int argc, const char * argv[]) {
                         bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], off_tree_edge_map);
+            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], off_tree_edge_map, G_adja);
         }
         
         gettimeofday(&endTime, NULL);

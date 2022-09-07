@@ -80,7 +80,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root);
 void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<double>> &copy_off_tree_edge);
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            vector<int> &similar_list, map<uint64_t, uint32_t> &copy_off_tree_edge);
+                            vector<int> &similar_list, map<uint64_t, uint32_t> &copy_off_tree_edge, vector<set<int>> &G_adja);
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, map<uint64_t, uint32_t> &off_tree_edge_map, vector<set<int>> &G_adja);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);

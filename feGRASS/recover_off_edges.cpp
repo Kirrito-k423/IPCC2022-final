@@ -131,7 +131,7 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                         vector<int> &similar_list, map<uint64_t, uint32_t> &off_tree_edge_map){
+                         vector<int> &similar_list, map<uint64_t, uint32_t> &off_tree_edge_map, vector<set<int>> &G_adja){
     //mark the edge that is similar to the edge which wants to be added
     int point_pair=0;
     int hit_num=0;
@@ -151,6 +151,9 @@ void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bf
                 continue;
             }
             if (bfs_process1[j]==bfs_process2[k]) {
+                continue;
+            }
+            if(G_adja[bfs_process1[j]-1].count(bfs_process2[k])==0){  //k is not adja of j
                 continue;
             }
             point_pair++;
