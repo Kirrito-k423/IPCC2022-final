@@ -225,39 +225,18 @@ int main(int argc, const char * argv[]) {
 
     printTime("Sort off-tree edges");
 
-    /*
-    construct global off-tree edges hash map, for an off-tree edge 
-    with point with index i and j, hash key could be i << 16 & j
-    Attention: point index should supposed less than 2^16.
+    /**
+     * 对于每个顶点维护一个hash表，记录了与其连接的非树边。
+     * key为连接的顶点，value为非树边在copy_off_tree_edge中的索引
     */
-    map<uint64_t, uint32_t> off_tree_edge_map;
-    //ofstream ou;
-    //string path = "off_tree_edges.txt";
-    //ou.open(path.c_str());
-    for(int i = 0; i < copy_off_tree_edge.size()/cut_similarity_range; i++){
-        // store a pair of directed edges to reduce lookup time
-        uint64_t key1 = ((uint64_t)(copy_off_tree_edge[i][0]) << 32) | uint64_t(copy_off_tree_edge[i][1]);
-        uint64_t key2 = ((uint64_t)(copy_off_tree_edge[i][1]) << 32) | uint64_t(copy_off_tree_edge[i][0]);
-        // DEBUG_PRINT("node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
-        off_tree_edge_map[key1] = uint32_t(i);
-        off_tree_edge_map[key2] = uint32_t(i);
-        //off_tree_edge_map.insert(pair<uint32_t, uint16_t>(key, i));        
-        // char s[100];
-        // sprintf(s, "node 1: %x, node2: %x, key: %x, value: %d \n", uint32_t(copy_off_tree_edge[i][0]), uint32_t(copy_off_tree_edge[i][1]), key1, uint16_t(i));
-        // ou << s;
+    vector<map<int, int>> G_adja(M);
+    for(int i = 0; i < copy_off_tree_edge.size(); i++){
+        int u = copy_off_tree_edge[i][ROW]-1;
+        int v = copy_off_tree_edge[i][COLUMN]-1;
+        G_adja[u][v] = i;
+        G_adja[v][u] = i;
     }
-    //ou.close();
-    printTime("Construct off-tree edge hash map")
-
-
-    //图G的邻接表
-    vector<set<int>> G_adja(M);
-    for(int i=0; i<M; i++){
-        for(int j=0; j<triple2[i].size(); j++){
-            G_adja[i].insert(triple2[i][j][ROW]);
-        }
-    }
-    printTime("Construct G-adja list")
+    printTime("Construct Vertex off-tree hash map on G");
 
     /** 恢复边阶段
      * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数
@@ -328,7 +307,7 @@ int main(int argc, const char * argv[]) {
                         bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, off_tree_edge_map, G_adja);
+            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
@@ -393,7 +372,7 @@ int main(int argc, const char * argv[]) {
                         bfs_process1.size(),bfs_process2.size(),bfs_process1.size()*bfs_process2.size()*(copy_off_tree_edge.size()-i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], off_tree_edge_map, G_adja);
+            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja);
         }
         
         gettimeofday(&endTime, NULL);
