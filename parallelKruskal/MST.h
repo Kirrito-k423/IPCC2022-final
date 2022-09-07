@@ -4,7 +4,7 @@
 // vertexId needs to be signed for the serial version
 using vertexId = int;
 using edgeId = uint;
-using edgeWeight = float;
+using edgeWeight = double;
 
 parlay::sequence<edgeId> mst(wghEdgeArray<vertexId,edgeWeight> &E);
 

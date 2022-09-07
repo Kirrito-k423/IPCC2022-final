@@ -32,7 +32,7 @@
 //  intE should have enough range to represent |E|
 //  intE defaults to intV if not specified
 using DefaultIntV = int;
-using DefaultWeight = float;
+using DefaultWeight = double;
 
 // **************************************************************
 //    EDGE ARRAY REPRESENTATION

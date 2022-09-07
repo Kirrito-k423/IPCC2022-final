@@ -1,6 +1,4 @@
-#include "common/graph.h"
-#include "parlay/sequence.h"
-#include "MST.h"
+
 #include "global.h"
 
 #define ROW 0
@@ -195,41 +193,54 @@ int main(int argc, const char * argv[]) {
     printTime("Sort G edge\t took %f ms\n")
 
 
-    wghEdgeArray<vertexId,edgeWeight> In;
-    parlay::sequence<edgeId> Out;
+    wghEdgeArray<vertexId,edgeWeight> In = read_WghEdgeArray_From_edge_matrix<vertexId,edgeWeight>(edge_matrix);             
+    printTime("Run PBBS input\t\t\t took %f ms\n")
+    parlay::sequence<edgeId> Out = mst(In);
+    printTime("Run PBBS kruscal\t\t\t took %f ms\n")
+
+    vector<vector<double>> spanning_tree;//spanning tree
+    int i_length = Out.size();
+    for(int i; i < i_length; i++){
+        // cout << "i " << i+1 << " " << Out[i] << std::endl;
+        spanning_tree.push_back(edge_matrix[Out[i]]);
+    }
+    printTime("Run spanning_tree.push_back\t\t\t took %f ms\n")
+
 
     //run kruscal to get largest-effect-weight spanning tree
-    // MEWST = maximum-effective-weight spanning tree
-    int assistance_size=M; //int(edge_matrix.size());
-    int assistance[assistance_size+1];//check wether some points construct the circle
-    for (int i=0; i<=assistance_size; i++) {
-        assistance[i]=i;
-    }
-    int k=0;//show how many trees have been add into
-    vector<vector<double>> spanning_tree;//spanning tree
-    int tmin;
-    int tmax;
-    //kruscal
-    for (int i=0; i<edge_matrix.size(); i++) {
-        int edge_point1 = int(edge_matrix[i][0]);
-        int edge_point2 = int(edge_matrix[i][1]);
-        if (assistance[edge_point1]!=assistance[edge_point2]){
-            k++;
-            spanning_tree.push_back(edge_matrix[i]);
-            tmin = assistance[edge_point1]>=assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
-            tmax = assistance[edge_point1]< assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
-            for (int j=1; j<=assistance_size; j++) {
-                if (assistance[j]==tmin){
-                    assistance[j]=tmax;
-                }
-            }
-        }
-        if (k==M-1){
-            break;
-        }
-    }
+    // MEWST = maximum-effective-weightmaxkt spanning tree
+    // int assistance_size=M; //int(edge_matrix.size());
+    // int assistance[assistance_size+1];//check wether some points construct the circle
+    // for (int i=0; i<=assistance_size; i++) {
+    //     assistance[i]=i;
+    // }
+    // int k=0;//show how many trees have been add into
+    // vector<vector<double>> spanning_tree;//spanning tree
+    // int tmin;
+    // int tmax;
+    // //kruscal
+    // for (int i=0; i<edge_matrix.size(); i++) {
+    //     int edge_point1 = int(edge_matrix[i][0]);
+    //     int edge_point2 = int(edge_matrix[i][1]);
+    //     if (assistance[edge_point1]!=assistance[edge_point2]){
+    //         k++;
+    //         spanning_tree.push_back(edge_matrix[i]);
+    //         cout << "k " << k << " " << i << std::endl;
 
-    printTime("Run kruscal\t\t\t took %f ms\n")
+    //         tmin = assistance[edge_point1]>=assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
+    //         tmax = assistance[edge_point1]< assistance[edge_point2] ?assistance[edge_point2]:assistance[edge_point1];
+    //         for (int j=1; j<=assistance_size; j++) {
+    //             if (assistance[j]==tmin){
+    //                 assistance[j]=tmax;
+    //             }
+    //         }
+    //     }
+    //     if (k==M-1){
+    //         break;
+    //     }
+    // }
+
+    // printTime("Run kruscal\t\t\t took %f ms\n")
 
     //construct the off-tree edge
     vector<vector<double>> off_tree_edge;

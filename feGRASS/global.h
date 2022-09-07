@@ -24,6 +24,12 @@
 #include <sys/time.h>
 #include <string.h>
 
+#include "common/graph.h"
+#include "parlay/sequence.h"
+#include "MST.h"
+
+
+
 #define NUM_THREADS 32
 #define first_step_OMP_percentage 0.02  //第一部分OMP的解决边数的占比 case2 3 0.01更快
 // #define task_pool_size 512           //变成由M L 确定的全局变量
@@ -92,4 +98,40 @@ int get_LCA(int i, int j, int *parent, int *no_weight_dis);
 void print_M1_Array(string name,int * toPrint);
 void printStack(string name, stack<int> toPrint);
 int get_task_pool_size(int total_num);
+
+template <class intV, class Weight>
+wghEdgeArray<intV,Weight> read_WghEdgeArray_From_edge_matrix(vector<vector<double>> &W) {
+  using WE = wghEdge<intV,Weight>;
+  // parlay::sequence<char> S = readStringFromFile(fname);
+  // parlay::sequence<char*> W = stringToWords(S);
+  // if (W[0] != WghEdgeArrayHeader) {
+  //   cout << "Bad input file" << endl;
+  //   abort();
+  // }
+  long n = W.size();
+  cout << W.size() << "\n" 
+  << n << "\n" 
+  << W[0][0] << "\n"
+  << W[0][1] << "\n" 
+  << W[0][2] << "\n" 
+  << W[0][3] << "\n" 
+//   << W[0][4] << "\n" 
+//   << W[0][5] << "\n"
+  << W[1][0] << "\n"
+  << W[1][1] << "\n" 
+  << W[1][2] << "\n" 
+  << W[1][3] << "\n" 
+  << std::endl;
+  auto E = parlay::tabulate(n, [&] (size_t i) -> WE {
+return WE((long int)(W[i][0]),
+    (long int)(W[i][1]),
+    (Weight) (-W[i][2]));});
+
+  auto mon = parlay::make_monoid([&] (WE a, WE b) {
+return WE(std::max(a.u, b.u), std::max(a.v, b.v), 0);},
+    WE(0,0,0));
+  auto r = parlay::reduce(E, mon);
+
+  return wghEdgeArray<intV,Weight>(std::move(E), max<intV>(r.u, r.v) + 1);
+}
 #endif
