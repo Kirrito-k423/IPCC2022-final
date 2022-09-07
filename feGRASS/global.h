@@ -71,6 +71,7 @@ extern vector<vector<vector<double>>> adja_list;
 extern double *dis;
 extern int *parent;
 extern int *no_weight_dis;
+extern struct timeval startTime, endTime;
 
 //recover_off_edges.cpp
 int calculate_beta(int i, int j);
@@ -92,4 +93,8 @@ int get_LCA(int i, int j, int *parent, int *no_weight_dis);
 void print_M1_Array(string name,int * toPrint);
 void printStack(string name, stack<int> toPrint);
 int get_task_pool_size(int total_num);
+
+void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanning_tree);
+bool compare(const vector<double> &a,const vector<double> &b);
+
 #endif
