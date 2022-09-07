@@ -164,6 +164,11 @@ void merge_msf(int number_of_processors, int number_of_vertices, int rank, vecto
         }
         printf("rank: %d, iteration finished!\n", rank);
     }
+    if(rank == 0){
+        for (int i = 0; i < merged_msf_edges.size(); i++){
+            printf("%d %d %lf\n", (int)merged_msf_edges[i][0], (int)merged_msf_edges[i][1], merged_msf_edges[i][2]);
+        }
+    }
 }
 
 
@@ -173,17 +178,19 @@ void merge_msf(int number_of_processors, int number_of_vertices, int rank, vecto
 */
 void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_edges, vector<vector<double>> &recv_msf_edges, vector<vector<double>> &merged_msf_edges) {
     int i;
-    printf("rank: %d, local size: %ld, recv size: %ld, merged size: %ld\n", rank, local_msf_edges.size(), merged_msf_edges.size(), recv_msf_edges.size());
+    printf("rank: %d, local size: %ld, merged size: %ld, recvd size: %ld\n", rank, local_msf_edges.size(), merged_msf_edges.size(), recv_msf_edges.size());
     for (i = 0; i < recv_msf_edges.size(); i++) {
         merged_msf_edges.push_back(recv_msf_edges[i]);
     }
-    printf("rank: %d, local size: %ld, recv size: %ld, merged size: %ld\n", rank, local_msf_edges.size(), merged_msf_edges.size(), recv_msf_edges.size());
+    printf("rank: %d, local size: %ld, merged size: %ld, recvd size: %ld\n", rank, local_msf_edges.size(), merged_msf_edges.size(), recv_msf_edges.size());
 
     /* Sort local and received edges */
-    //qsort(merged_msf_edges, merged_msf_edge_count, sizeof(edge_s), compare_edges);
+    //qsort(merged_msf_edges, merged_msf_edge_count, sizeof(), compare_edges);
+    // for (int i = 0; i < merged_msf_edges.size(); i++){
+    //     printf("%d %d %lf\n", (int)merged_msf_edges[i][0], (int)merged_msf_edges[i][1], merged_msf_edges[i][2]);
+    // }
     stable_sort(merged_msf_edges.begin(), merged_msf_edges.end(), compare);
     uf_make(number_of_vertices);
-
     int used_edge_index = 0;
     vector<double> min_edge;
     for (i = 0; i < merged_msf_edges.size(); i++) {
@@ -205,6 +212,7 @@ void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_e
     // for (i = 0; i < local_msf_edges.size(); i++) {
     //     merged_msf_edges.push_back(local_msf_edges[i]);
     // }
+    merged_msf_edges.erase(merged_msf_edges.begin(), merged_msf_edges.end());
     merged_msf_edges.assign(local_msf_edges.begin(), local_msf_edges.end());
 }
 
