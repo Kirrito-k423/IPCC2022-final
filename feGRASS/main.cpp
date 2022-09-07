@@ -309,7 +309,7 @@ int main(int argc, const char * argv[]) {
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
             first_subTime[2] += tmp_past_time;
-            TIME_PRINT("\ncopy_off_tree_edge belta %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
+            DEBUG_PRINT("\ncopy_off_tree_edge belta %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
 
             //choose two nodes as root node respectively to run belta bfs
@@ -321,7 +321,7 @@ int main(int argc, const char * argv[]) {
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
             first_subTime[3] += tmp_past_time;
-            TIME_PRINT("copy_off_tree_edge 2 BFS %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
+            DEBUG_PRINT("copy_off_tree_edge 2 BFS %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
 
             DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n",i,
@@ -333,7 +333,7 @@ int main(int argc, const char * argv[]) {
             gettimeofday(&endTime, NULL);
             tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
             first_subTime[4] += tmp_past_time;
-            TIME_PRINT("copy_off_tree_edge similarity %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
+            DEBUG_PRINT("copy_off_tree_edge similarity %d/%ld \t took %f ms\n",i,copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
         } 
     }
@@ -370,7 +370,7 @@ int main(int argc, const char * argv[]) {
         gettimeofday(&endTime, NULL);
         tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
         subTime[2] += tmp_past_time;
-        TIME_PRINT("fill task_list %d/%ld \t took %f ms\n",curr_edge_index,copy_off_tree_edge.size(), tmp_past_time);
+        DEBUG_PRINT("fill task_list %d/%ld \t took %f ms\n",curr_edge_index,copy_off_tree_edge.size(), tmp_past_time);
         gettimeofday(&startTime, NULL);
 
         // 并行获得每条off-tree边的相似边列表
@@ -399,7 +399,7 @@ int main(int argc, const char * argv[]) {
         gettimeofday(&endTime, NULL);
         tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
         subTime[3] += tmp_past_time;
-        TIME_PRINT("copy_off_tree_edge OMP %d/%ld \t took %f ms\n",curr_edge_index,copy_off_tree_edge.size(), tmp_past_time);
+        DEBUG_PRINT("copy_off_tree_edge OMP %d/%ld \t took %f ms\n",curr_edge_index,copy_off_tree_edge.size(), tmp_past_time);
         gettimeofday(&startTime, NULL);
 
         int tmp_avail_task_num = 0;
@@ -409,9 +409,6 @@ int main(int argc, const char * argv[]) {
             if (similarity_tree[curr_edge_index]==0){
                 tmp_avail_task_num++;
                 num_additive_tree++;
-                if ((num_additive_tree%64)==0) {
-                    printf("num_additive_tree : %d\n", num_additive_tree);
-                }
                 spanning_tree.push_back(copy_off_tree_edge[curr_edge_index]);
                 if (num_additive_tree==max_num_additive_tree) {
                     break;
@@ -431,7 +428,7 @@ int main(int argc, const char * argv[]) {
         gettimeofday(&endTime, NULL);
         tmp_past_time=(endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0;
         subTime[4] += tmp_past_time;
-        TIME_PRINT("copy_off_tree_edge merge %d/%ld \t took %f ms\n",curr_edge_index,copy_off_tree_edge.size(), tmp_past_time);
+        DEBUG_PRINT("copy_off_tree_edge merge %d/%ld \t took %f ms\n",curr_edge_index,copy_off_tree_edge.size(), tmp_past_time);
         gettimeofday(&startTime, NULL);
 
         curr_edge_index += 1;
