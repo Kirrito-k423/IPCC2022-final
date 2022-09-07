@@ -49,9 +49,9 @@ boolean has_sent;        /* Once processor sends it's data it can terminate */
 std::ifstream fin;
 
 typedef struct edge_t { /* struct representing one edge */
-    int v;
-    int u;
-    int weight;
+    double v;
+    double u;
+    double weight;
 } edge_s;
 
 edge_s *edges;             /* Array of edges belonging to this process */
@@ -152,20 +152,25 @@ void parse_input() {
     /* Start and end index of vertex belonging to this process */
     int rank_range_start = rank * vertices_per_process;
     int rank_range_end = (rank + 1) * vertices_per_process;
-
+    printf("rank: %d\trange start:%d\trange end:%d\n", rank, rank_range_start, rank_range_end);
     number_of_edges = 0;
 
-    int total_edges, u, v, edge_weight;
+    int total_edges;
+    double u, v, edge_weight;
     fin >> total_edges;
     //fread(&total_edges, sizeof(int), 1, f);
 
     /* Create arrays for holding edge structures */
-    edges = (edge_s *)malloc(vertices_per_process * number_of_vertices * sizeof(edge_s));
+    //这里如果图相对稠密，进程数*节点数<总边数时，会导致溢出，
+    // edges = (edge_s *)malloc(vertices_per_process * number_of_vertices * sizeof(edge_s));
+    
+    // TODO: 分配空间过大，需要使用vector进行动态分配
+    edges = (edge_s *)malloc(total_edges * sizeof(edge_s));
     local_msf_edges = (edge_s *)malloc((number_of_vertices - 1) * sizeof(edge_s));
     merged_msf_edges = (edge_s *)malloc(2 * (number_of_vertices - 1) * sizeof(edge_s));
 
     int i;
-    int f_edge[3];
+    double f_edge[3];
     for (i = 0; i < total_edges; i++) {
         // fread(&f_edge, sizeof(int), 3, f);
         fin >> f_edge[0] >> f_edge[1] >> f_edge[2];
@@ -231,8 +236,8 @@ void find_local_msf() {
     for (i = 1; i <= number_of_edges; i++) {
         edge_s *min_edge = &edges[used_edge_index++];
 
-        int v = (*min_edge).v;
-        int u = (*min_edge).u;
+        int v = (int)(*min_edge).v;
+        int u = (int)(*min_edge).u;
         u_node *v_node = uf_find(uf_set + v);
         u_node *u_node = uf_find(uf_set + u);
 
@@ -328,8 +333,8 @@ void merge() {
     for (i = 0; i < merged_msf_edge_count; i++) {
         edge_s *min_edge = &merged_msf_edges[used_edge_index++];
 
-        int v = (*min_edge).v;
-        int u = (*min_edge).u;
+        int v = (int)(*min_edge).v;
+        int u = (int)(*min_edge).u;
         u_node *v_node = uf_find(uf_set + v);
         u_node *u_node = uf_find(uf_set + u);
 
@@ -376,7 +381,7 @@ void print_local_edges() {
     int i;
     printf("Proc %d local edges:\n", rank);
     for (i = 0; i < number_of_edges; ++i) {
-        printf("(%d,%d) = %d\n", edges[i].v, edges[i].u, edges[i].weight);
+        printf("(%d,%d) = %lf\n", (int)edges[i].v, (int)edges[i].u, edges[i].weight);
     }
 }
 
@@ -384,7 +389,7 @@ void print_local_msf_edges() {
     int i;
     printf("Proc %d local MSF edges:\n", rank);
     for (i = 0; i < local_msf_edge_count; i++) {
-        printf("(%d,%d) = %d\n", local_msf_edges[i].v, local_msf_edges[i].u, local_msf_edges[i].weight);
+        printf("(%d,%d) = %lf\n", (int)local_msf_edges[i].v, (int)local_msf_edges[i].u, local_msf_edges[i].weight);
     }
 }
 
@@ -392,7 +397,7 @@ void print_received_msf_edges() {
     int i;
     printf("Proc %d received MSF edges:\n", rank);
     for (i = 0; i < recv_msf_edge_count; i++) {
-        printf("(%d,%d) = %d\n", recv_msf_edges[i].v, recv_msf_edges[i].u, recv_msf_edges[i].weight);
+        printf("(%d,%d) = %lf\n", (int)recv_msf_edges[i].v, (int)recv_msf_edges[i].u, recv_msf_edges[i].weight);
     }
 }
 
@@ -400,7 +405,7 @@ void print_merged_msf_edges() {
     int i;
     printf("Proc %d merged MSF edges:\n", rank);
     for (i = 0; i < merged_msf_edge_count; i++) {
-        printf("(%d,%d) = %d\n", merged_msf_edges[i].v, merged_msf_edges[i].u, merged_msf_edges[i].weight);
+        printf("(%d,%d) = %lf\n", (int)merged_msf_edges[i].v, (int)merged_msf_edges[i].u, merged_msf_edges[i].weight);
     }
 }
 
