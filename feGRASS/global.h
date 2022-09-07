@@ -42,8 +42,14 @@ using namespace std;
 
 #ifdef TIME
 #define TIME_PRINT(fmt, args...)    fprintf(stderr, fmt, ## args)
+#define printTime(s) {\
+    gettimeofday(&endTime, NULL);\
+    fprintf(stderr, "%-40s: took %.6f ms\n", s, (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);\
+    gettimeofday(&startTime, NULL);\
+}
 #else
 #define TIME_PRINT(fmt, args...)    /* Don't do anything in release builds */
+#define printTime(s)
 #endif
 
 #ifdef DEBUG
@@ -56,11 +62,6 @@ using namespace std;
 #define OMP_TIME_PRINT(fmt, args...)
 #endif
 
-#define printTime(j) {\
-    gettimeofday(&endTime, NULL);\
-    TIME_PRINT(j, (endTime.tv_sec-startTime.tv_sec)*1000+(endTime.tv_usec-startTime.tv_usec)/1000.0);\
-    gettimeofday(&startTime, NULL);\
-}
 
 //global value
 extern int M;
@@ -72,7 +73,6 @@ extern vector<vector<vector<double>>> adja_list;
 extern double *dis;
 extern int *parent;
 extern int *no_weight_dis;
-extern struct timeval startTime, endTime;
 
 //recover_off_edges.cpp
 int calculate_beta(int i, int j);

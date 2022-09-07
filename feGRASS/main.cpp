@@ -14,7 +14,6 @@ int L;
 int largest_volume_point;
 double first_subTime[5]={0,0,0,0,0}; // 伪逆， 循环总时间， 循环内三部分时间
 double subTime[5]={0,0,0,0,0}; // 伪逆， 循环总时间， 循环内三部分时间
-struct timeval startTime, endTime;
 
 int task_pool_size;
 
@@ -45,6 +44,7 @@ void print_time_proportion(double total_time){
 }
 
 int main(int argc, const char * argv[]) {
+    struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
 
     //read input file
@@ -102,7 +102,7 @@ int main(int argc, const char * argv[]) {
     //free the memory of triple1
     vector<vector<double>>().swap(triple1);
 
-    printTime("Before timing \t\t\t took %f ms\n");
+    printTime("Before timing");
 
     /**************************************************/
     /***************** Start timing *******************/
@@ -120,7 +120,7 @@ int main(int argc, const char * argv[]) {
         }
     }
 
-    printTime("find largestPoint \t\t took %f ms\n");
+    printTime("find largestPoint");
 
     //run bfs to get the no-weight distance between normal point with the largest-volume point
     int no_weight_distance[M+1];//no-weight-distance between largest-volume point and normal point
@@ -156,7 +156,7 @@ int main(int argc, const char * argv[]) {
     //free the memory
     queue<int>().swap(process);
 
-    printTime("BFS G get no weight distance \t\t took %f ms\n")
+    printTime("BFS G get no weight distance")
 
     //construct the edge-weight matrix
     vector<double> edge; // [point_index1, point_index2, W_eff, W_ij]
@@ -182,12 +182,12 @@ int main(int argc, const char * argv[]) {
             edge.erase(edge.begin(),edge.end());
         }
     }
-    printTime("Create edge-weight matrix\t took %f ms\n")
+    printTime("Create edge-weight matrix")
 
     //run kruscal to get largest-effect-weight spanning tree
     vector<vector<double>> spanning_tree;//spanning tree
     kruscal(edge_matrix, spanning_tree);
-    printTime("Run kruscal\t\t\t took %f ms\n")
+    printTime("kruscal total");
 
     //construct the off-tree edge
     vector<vector<double>> off_tree_edge;
@@ -205,7 +205,7 @@ int main(int argc, const char * argv[]) {
     }
     vector<vector<double>>().swap(edge_matrix);
 
-    printTime("Construct off-tree edge\t\t took %f ms\n")
+    printTime("Construct off-tree edge")
 
     //calculate the resistance of each off_tree edge
     vector<vector<double>> copy_off_tree_edge;//to resore the effect resistance
@@ -216,14 +216,14 @@ int main(int argc, const char * argv[]) {
     struct timeval Matrix_end_time;
     gettimeofday(&Matrix_end_time, NULL);
     subTime[0]=(Matrix_end_time.tv_sec-startTime.tv_sec)*1000+(Matrix_end_time.tv_usec-startTime.tv_usec)/1000.0;
-    printTime("Calculate resistance\t\t took %f ms\n")
+    printTime("Calculate resistance total")
 
     //sort by effect resistance
     vector<vector<double>>().swap(off_tree_edge);
     stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
     // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
 
-    printTime("Sort off-tree edges \t\t took %f ms\n");
+    printTime("Sort off-tree edges");
 
     /*
     construct global off-tree edges hash map, for an off-tree edge 
@@ -247,7 +247,7 @@ int main(int argc, const char * argv[]) {
         // ou << s;
     }
     //ou.close();
-    printTime("Construct off-tree edge hash map\t\t took %f ms\n")
+    printTime("Construct off-tree edge hash map")
 
 
     //图G的邻接表
@@ -257,7 +257,7 @@ int main(int argc, const char * argv[]) {
             G_adja[i].insert(triple2[i][j][ROW]);
         }
     }
-    printTime("Construct G-adja list\t\t took %f ms\n")
+    printTime("Construct G-adja list")
 
     /** 恢复边阶段
      * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数
@@ -278,7 +278,7 @@ int main(int argc, const char * argv[]) {
     struct timeval loop_begin_time, loop_end_time;
     double tmp_past_time;
     gettimeofday(&loop_begin_time, NULL);
-    printTime("before first while \t\t took %f ms\n");
+    printTime("before first while");
 
     int i;
     for (i=0; i<copy_off_tree_edge.size(); i++) {
@@ -353,7 +353,7 @@ int main(int argc, const char * argv[]) {
     int total_task_num=0;   //所有块边数之和
 
     gettimeofday(&loop_begin_time, NULL);
-    printTime("first while \t\t took %f ms\n");
+    printTime("first while");
     while(1){
         gettimeofday(&startTime, NULL);
         //填充未被排除的边到任务列表

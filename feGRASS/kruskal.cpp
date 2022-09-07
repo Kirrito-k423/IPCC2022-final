@@ -49,11 +49,12 @@ public:
 
 
 void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanning_tree){
+    struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);                                                                         \
     int M = edge_matrix.size();
     //sort according to the weight of each edge
     stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
-    printTime("Sort G edge\t took %f ms\n")
+    printTime("kruscal: Sort G edge")
 
     // //run kruscal to get largest-effect-weight spanning tree
     // // MEWST = maximum-effective-weight spanning tree
@@ -100,4 +101,5 @@ void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanni
             break;
         }
     }
+    printTime("kruscal: loop");
 }

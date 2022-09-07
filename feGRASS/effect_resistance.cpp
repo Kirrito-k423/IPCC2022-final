@@ -152,12 +152,12 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
 
     //创建生成树的邻接表
     create_adja_list(spanning_tree, adja_list);
-    printTime("adja list\t\t took %f ms\n")
+    printTime("resistance: create adja list")
     // debug_print_adja(adja_list);
     
     //DFS遍历，得到dis,parent等
     DFS_traversal(adja_list, dis, parent, no_weight_dis);
-    printTime("DFS traversal\t\t took %f ms\n")
+    printTime("resistance: DFS traverse spanning tree")
     // debug_print(dis, parent, no_weight_dis);
     
     // printf("path: \n");
@@ -182,7 +182,7 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
         copy_off_tree_edge.push_back(edge);
         edge.erase(edge.begin(),edge.end());
     }
-    printTime("E-V+1(off-tree) get_LCA\t\t took %f ms\n")
+    printTime("resistance: E-V+1(off-tree) get_LCA")
 }
 
 void write_edge(vector<vector<double>> &edge, const char *file){
