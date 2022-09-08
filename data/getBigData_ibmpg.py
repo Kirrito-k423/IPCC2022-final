@@ -1,8 +1,9 @@
 from icecream import ic
 import re
 
+# ic.enable()
 ic.disable()
-filename="ibmpg3.solution"
+filename="ibmpg5.solution"
 # filename="test.sol"
 write_filename="data.mtx"
 sorted_dot=dict()
@@ -10,12 +11,13 @@ write_list=[]
 
 dot_number=1
 fp = open(filename, "r")
-for line in fp.readlines(): #读取每一行
+num_file = sum([1 for i in open(filename, "r")])
+for line in tqdm(fp.readlines(),total=num_file): #读取每一行
 	matchObj = re.match( r'^n([0-9])_([0-9]*)_([0-9]*)  (.*)$', line, re.M|re.I)
 	if matchObj:
 		ic(matchObj[2],matchObj[3],matchObj[4])
-		raw_point1 = int(matchObj[2])
-		raw_point2 = int(matchObj[3])
+		raw_point1 = matchObj[2]+"n"+matchObj[1]
+		raw_point2 = matchObj[3]+"n"+matchObj[1]
 		weight = float(matchObj[4])
 		ic(raw_point1, raw_point2, weight)
 
