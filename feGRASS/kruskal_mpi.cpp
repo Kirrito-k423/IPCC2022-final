@@ -22,8 +22,10 @@ int get_merge_partner_rank(boolean should_send, int rank, int merge_iteration) {
         return rank + pow(2, merge_iteration); // rank of source
     }
 }
-void parse_input(vector<vector<double>> &edges, int rank, int number_of_edges, int vertices_per_process, int edges_per_process) {
+void parse_input(vector<vector<double>> &edges, int rank) {
     /* Start and end index of vertex belonging to this process */
+    int vertices_per_process = num_of_vertices / num_of_processors;
+    int edges_per_process = num_of_edges / num_of_processors;
     int rank_range_start = rank * vertices_per_process;
     int rank_range_end = (rank + 1) * vertices_per_process;
     printf("rank: %d\trange start:%d\trange end:%d\n", rank, rank_range_start, rank_range_end);
@@ -33,7 +35,7 @@ void parse_input(vector<vector<double>> &edges, int rank, int number_of_edges, i
     vector<double> edge;
     int u, v;
     double edge_weight;
-    for (i = 0; i < number_of_edges; i++) {
+    for (i = 0; i < num_of_edges; i++) {
         fin >> u >> v;
         fin >> edge_weight;
         //printf("%d\t%d\t%lf\n", (int)u, (int)v, edge_weight);
@@ -56,13 +58,13 @@ void parse_input(vector<vector<double>> &edges, int rank, int number_of_edges, i
 local_msf_edge_count = merged_msf_edge_count = 局部生成树的边数
 */
 
-void find_local_msf(int rank, int number_of_vertices, vector<vector<double>> & edges, vector<vector<double>> & local_msf_edges, vector<vector<double>> &merged_msf_edges) {
+void find_local_msf(int rank, vector<vector<double>> & edges, vector<vector<double>> & local_msf_edges, vector<vector<double>> &merged_msf_edges) {
 
     /* Sort edges belonging to each process */
     stable_sort(edges.begin(), edges.end(), compare);
-    //qsort(edges, number_of_edges, sizeof(edge_s), compare_edges);
+    //qsort(edges, num_of_edges, sizeof(edge_s), compare_edges);
 
-    uf_make(number_of_vertices);
+    uf_make(num_of_vertices);
     vector<double> min_edge;
     int used_edge_index = 0;
     int i;
@@ -88,10 +90,10 @@ void find_local_msf(int rank, int number_of_vertices, vector<vector<double>> & e
 发送方：先发送边数，然后发送自己的局部生成树边集
 接收方：接受边数，然后接收对方的局部生成树边集，然后执行merge
 */
-void merge_msf(int number_of_processors, int number_of_vertices, int rank, vector<vector<double>> &local_msf_edges, vector<vector<double>> &merged_msf_edges) {
+void merge_msf(int rank, vector<vector<double>> &local_msf_edges, vector<vector<double>> &merged_msf_edges) {
     int max_merge_iteration = 0;
 
-    int temp = number_of_processors;
+    int temp = num_of_processors;
     while (temp > 1) {
         temp = temp / 2;
         max_merge_iteration++;
@@ -140,12 +142,9 @@ void merge_msf(int number_of_processors, int number_of_vertices, int rank, vecto
                 // ou << s;
                 edge.erase(edge.begin(), edge.end());
             }
-            //MPI_Get_count(&status, mpi_edge, &recv_msf_edge_count);
-            // for (int i = 0; i < merged_msf_edges.size(); i++){
-            //     printf("Recv... rank: %d, node: %d %d %lf\n", rank, (int)merged_msf_edges[i][0], (int)merged_msf_edges[i][1], merged_msf_edges[i][2]);
-            // }
+
             printf("Proc %d: Received %d edges from processor #%d\n", rank, recv_msf_edges_size, merge_partner_rank);
-            merge(rank, number_of_vertices, local_msf_edges, recv_msf_edges, merged_msf_edges);
+            update_local_msf_edges(rank, local_msf_edges, recv_msf_edges, merged_msf_edges);
         }
         merge_iteration++;
         if (has_sent) { // Process has sent it's data and can terminate now
@@ -167,22 +166,19 @@ void merge_msf(int number_of_processors, int number_of_vertices, int rank, vecto
 然后将merged_msf_edges边排序，清空局部生成树的边集，从中不断选择不构成回路的权重较小的边，重新构造自己的局部生成树
 然后用新构造的局部生成树复制更新merged_msf_edges
 */
-void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_edges, vector<vector<double>> &recv_msf_edges, vector<vector<double>> &merged_msf_edges) {
-    int i;
-    printf("rank: %d, local size: %ld, merged size: %ld, recvd size: %ld\n", rank, local_msf_edges.size(), merged_msf_edges.size(), recv_msf_edges.size());
-    for (i = 0; i < recv_msf_edges.size(); i++) {
+void update_local_msf_edges(int rank, vector<vector<double>> &local_msf_edges, vector<vector<double>> &recv_msf_edges, vector<vector<double>> &merged_msf_edges) {
+    for (int i = 0; i < recv_msf_edges.size(); i++) {
         merged_msf_edges.push_back(recv_msf_edges[i]);
     }
     printf("rank: %d, local size: %ld, merged size: %ld, recvd size: %ld\n", rank, local_msf_edges.size(), merged_msf_edges.size(), recv_msf_edges.size());
 
     /* Sort local and received edges */
-    //qsort(merged_msf_edges, merged_msf_edge_count, sizeof(), compare_edges);
     stable_sort(merged_msf_edges.begin(), merged_msf_edges.end(), compare);
-    uf_make(number_of_vertices);
+    uf_make(num_of_vertices);
     int used_edge_index = 0;
     local_msf_edges.erase(local_msf_edges.begin(), local_msf_edges.end());
     vector<double> min_edge;
-    for (i = 0; i < merged_msf_edges.size(); i++) {
+    for (int i = 0; i < merged_msf_edges.size(); i++) {
         min_edge = merged_msf_edges[used_edge_index++];
 
         int v = (int)(min_edge[0]);
@@ -196,17 +192,12 @@ void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_e
         }
     }
 
-    /* Transfer new local MSF edges to merged edges */
-    // merged_msf_edges.erase(merged_msf_edges.begin(), merged_msf_edges.end());
-    // for (i = 0; i < local_msf_edges.size(); i++) {
-    //     merged_msf_edges.push_back(local_msf_edges[i]);
-    // }
     merged_msf_edges.erase(merged_msf_edges.begin(), merged_msf_edges.end());
     merged_msf_edges.assign(local_msf_edges.begin(), local_msf_edges.end());
 }
 
-void uf_make(int number_of_vertices) {
-    int size = sizeof(u_node) * number_of_vertices; // + sizeof(int)*(number_of_vertices - 1);
+void uf_make(int num_of_vertices) {
+    int size = sizeof(u_node) * num_of_vertices; // + sizeof(int)*(num_of_vertices - 1);
     uf_set = (u_node *)malloc(size);
     memset(uf_set, 0, size);
 }
@@ -230,16 +221,15 @@ void uf_union(u_node *a, u_node *b) {
 }
 
 
-
 int main(int argc, char **argv) {
     if (argc < 2) {
         printf("usage: %s filename\n", argv[0]);
         return 1;
     }
     printf("init mpi...\n");
-    int rank, number_of_processors;
+    int rank;
     MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &number_of_processors);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_of_processors);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	signal(11, sig_handler);
     const char *file = "byn.mtx";
@@ -249,25 +239,18 @@ int main(int argc, char **argv) {
     } else if (argc == 2) {
         file = argv[1];
     }
-    int number_of_vertices, number_of_edges;
     fin = ifstream(file);
     while (fin.peek() == '%')
         fin.ignore(2048, '\n');
-    fin >> number_of_vertices;
-    fin >> number_of_vertices;
-    fin >> number_of_edges;
+    fin >> num_of_vertices;
+    fin >> num_of_vertices;
+    fin >> num_of_edges;
     vector<vector<double>> edges; // 每个进程分配到的边
     vector<vector<double>> local_msf_edges;
     vector<vector<double>> merged_msf_edges;
-    int vertices_per_process = number_of_vertices / number_of_processors;
-    int edges_per_process = number_of_edges / number_of_processors;
-    printf("parse input...\n");
-    parse_input(edges, rank, number_of_edges, vertices_per_process, edges_per_process);
-    printf("find local msf...\n");
-    find_local_msf(rank, number_of_vertices, edges, local_msf_edges, merged_msf_edges);
-    printf("merge msf...\n");
-    merge_msf(number_of_processors, number_of_vertices, rank, local_msf_edges, merged_msf_edges);
-    printf("end computation...\n");
+    parse_input(edges, rank);
+    find_local_msf(rank, edges, local_msf_edges, merged_msf_edges);
+    merge_msf(rank, local_msf_edges, merged_msf_edges);
     MPI_Finalize();
 
     return 0;

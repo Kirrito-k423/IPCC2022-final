@@ -100,14 +100,14 @@ int get_task_pool_size(int total_num);
 typedef enum { FALSE,
                TRUE } boolean;
 
-void parse_input(vector<vector<double>> &edges, int rank, int number_of_edges, int vertices_per_process, int edges_per_process);
+void parse_input(vector<vector<double>> &edges, int rank);
 void parse_edge_list_input();
 int compare_edges(const void *a, const void *b);
 boolean should_send();
 int get_merge_partner_rank(boolean should_send, int rank, int merge_iteration);
-void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_edges, vector<vector<double>> &recv_msf_edges, vector<vector<double>> &merged_msf_edges);
+void update_local_msf_edges(int rank, vector<vector<double>> &local_msf_edges, vector<vector<double>> &recv_msf_edges, vector<vector<double>> &merged_msf_edges);
 void send_recieve_local_msf(int rank, int count, vector<vector<double>> &local_msf_edges, vector<vector<double>> & recv_msf_edges);
-void merge_msf(int num_of_processors, int rank, int &merge_iteration);
+void merge_msf(int rank, int &merge_iteration);
 void sig_handler(int sig) {
 	std::cerr << "Slave signal received " << sig << std::endl;
 	while (1);
@@ -119,7 +119,9 @@ typedef struct node_t { /* Union-Find data structure */
 
 u_node *uf_set; /* Array indicating which set does vertex belong to
                    (used in Union-Find algorithm) */
-
+int num_of_processors;
+int num_of_vertices;
+int num_of_edges;
 void uf_make(int number_of_vertices);
 u_node *uf_find(u_node *a);
 void uf_union(u_node *a, u_node *b);
