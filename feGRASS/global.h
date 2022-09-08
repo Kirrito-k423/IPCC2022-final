@@ -15,7 +15,8 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include <algorithm>
+// #include <algorithm>
+#include <parallel/algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
