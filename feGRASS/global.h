@@ -23,6 +23,8 @@
 #include <math.h>
 #include <sys/time.h>
 #include <string.h>
+#include "mpi.h"
+#include<signal.h>
 
 #define NUM_THREADS 32
 #define first_step_OMP_percentage 0.02  //第一部分OMP的解决边数的占比 case2 3 0.01更快
@@ -75,6 +77,7 @@ extern int *no_weight_dis;
 //recover_off_edges.cpp
 int calculate_beta(int i, int j);
 void beta_BFS(int beta, std::vector<int> &queue, int root);
+void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanning_tree);
 void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<double>> &copy_off_tree_edge);
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
@@ -92,4 +95,32 @@ int get_LCA(int i, int j, int *parent, int *no_weight_dis);
 void print_M1_Array(string name,int * toPrint);
 void printStack(string name, stack<int> toPrint);
 int get_task_pool_size(int total_num);
+
+// parallel kruskal using mpi
+typedef enum { FALSE,
+               TRUE } boolean;
+
+void parse_input(vector<vector<double>> &edges, int rank, int number_of_edges, int vertices_per_process, int edges_per_process);
+void parse_edge_list_input();
+int compare_edges(const void *a, const void *b);
+boolean should_send();
+int get_merge_partner_rank(boolean should_send, int rank, int merge_iteration);
+void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_edges, vector<vector<double>> &recv_msf_edges, vector<vector<double>> &merged_msf_edges);
+void send_recieve_local_msf(int rank, int count, vector<vector<double>> &local_msf_edges, vector<vector<double>> & recv_msf_edges);
+void merge_msf(int num_of_processors, int rank, int &merge_iteration);
+void sig_handler(int sig) {
+	std::cerr << "Slave signal received " << sig << std::endl;
+	while (1);
+}
+typedef struct node_t { /* Union-Find data structure */
+    struct node_t *parent;
+    int depth;
+} u_node;
+
+u_node *uf_set; /* Array indicating which set does vertex belong to
+                   (used in Union-Find algorithm) */
+
+void uf_make(int number_of_vertices);
+u_node *uf_find(u_node *a);
+void uf_union(u_node *a, u_node *b);
 #endif

@@ -1,33 +1,7 @@
 
 #include "global.h"
 
-typedef enum { FALSE,
-               TRUE } boolean;
-
-void parse_input(vector<vector<double>> &edges, int rank, int number_of_edges, int vertices_per_process, int edges_per_process);
-void parse_edge_list_input();
-int compare_edges(const void *a, const void *b);
-boolean should_send();
-int get_merge_partner_rank(boolean should_send, int rank, int merge_iteration);
-void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_edges, vector<vector<double>> &recv_msf_edges, vector<vector<double>> &merged_msf_edges);
-void send_recieve_local_msf(int rank, int count, vector<vector<double>> &local_msf_edges, vector<vector<double>> & recv_msf_edges);
-void merge_msf(int num_of_processors, int rank, int &merge_iteration);
-void print_received_msf_edges();
-
 std::ifstream fin;
-
-
-typedef struct node_t { /* Union-Find data structure */
-    struct node_t *parent;
-    int depth;
-} u_node;
-
-u_node *uf_set; /* Array indicating which set does vertex belong to
-                   (used in Union-Find algorithm) */
-
-void uf_make(int number_of_vertices);
-u_node *uf_find(u_node *a);
-void uf_union(u_node *a, u_node *b);
 
 
 bool compare(const vector<double> &a,const vector<double> &b){
@@ -63,7 +37,7 @@ void parse_input(vector<vector<double>> &edges, int rank, int number_of_edges, i
         fin >> u >> v;
         fin >> edge_weight;
         //printf("%d\t%d\t%lf\n", (int)u, (int)v, edge_weight);
-        if ((((int)u >= rank_range_start) && ((int)v < rank_range_end)) || (((int)u >= rank_range_start) && ((int)u < rank_range_end))) {
+        if ((((int)v >= rank_range_start) && ((int)v < rank_range_end)) || (((int)u >= rank_range_start) && ((int)u < rank_range_end))) {
             edge.push_back((double)u);
             edge.push_back((double)v);
             edge.push_back(edge_weight);
@@ -127,6 +101,7 @@ void merge_msf(int number_of_processors, int number_of_vertices, int rank, vecto
 
     boolean has_sent = FALSE;
     int merge_iteration = 0;
+
     while (merge_iteration < max_merge_iteration) {
         MPI_Status status;
         printf("merge iteration: %d, max merge iteration: %d\n", merge_iteration, max_merge_iteration);
@@ -134,28 +109,43 @@ void merge_msf(int number_of_processors, int number_of_vertices, int rank, vecto
         int merge_partner_rank = get_merge_partner_rank(sending, rank, merge_iteration);
         if (sending) { // should send
             int local_msf_edges_size = local_msf_edges.size();
+            double *local_msf_buf = (double *) malloc(sizeof(double) * 3 * local_msf_edges_size);
+            // ofstream ou("send_edges.txt");
             // 先发送边数
             MPI_Send(&local_msf_edges_size, 1, MPI_INT, merge_partner_rank, 0, MPI_COMM_WORLD);
-            MPI_Send(local_msf_edges.data(), local_msf_edges_size, MPI_DOUBLE, merge_partner_rank, 0, MPI_COMM_WORLD);
+            for(int i = 0; i < local_msf_edges_size; i++){
+                memcpy((void *)&local_msf_buf[i * 3], (void *)local_msf_edges[i].data(), 3*sizeof(double));
+                // char s[50];
+                // sprintf(s, "%d\t%d\t%.10lf\n", (int)local_msf_edges[i][0], (int)local_msf_edges[i][1], local_msf_edges[i][2]);
+                // ou << s;
+            }
+            MPI_Send(local_msf_buf, local_msf_edges_size * 3, MPI_DOUBLE, merge_partner_rank, 0, MPI_COMM_WORLD);
             printf("Proc %d: Sending %d edges to processor #%d\n", rank, local_msf_edges_size, merge_partner_rank);
             has_sent = TRUE;
         } else { // should receive
             int recv_msf_edges_size;
             MPI_Recv(&recv_msf_edges_size, 1, MPI_INT, merge_partner_rank, 0, MPI_COMM_WORLD, &status);
-            recv_msf_edges.resize(recv_msf_edges_size);
+            recv_msf_edges.reserve(recv_msf_edges_size);
             double *recv_data =  (double *) malloc(recv_msf_edges_size * sizeof(double) * 3);
-            MPI_Recv(recv_data, recv_msf_edges_size, MPI_DOUBLE, merge_partner_rank, 0, MPI_COMM_WORLD, &status);
+            MPI_Recv(recv_data, recv_msf_edges_size * 3, MPI_DOUBLE, merge_partner_rank, 0, MPI_COMM_WORLD, &status);
             vector<double> edge;
+            // ofstream ou("recv_edges.txt");
             for(int k = 0; k < recv_msf_edges_size; k++){
                 edge.push_back(recv_data[k * 3]);
                 edge.push_back(recv_data[k * 3 + 1]);
-                edge.push_back(recv_data[k * 3] + 2);
+                edge.push_back(recv_data[k * 3 + 2]);
                 recv_msf_edges.push_back(edge);
+                // char s[50];
+                // sprintf(s, "%d\t%d\t%.10lf\n", (int)edge[0], (int)edge[1], edge[2]);
+                // ou << s;
                 edge.erase(edge.begin(), edge.end());
             }
             //MPI_Get_count(&status, mpi_edge, &recv_msf_edge_count);
-            merge(rank, number_of_vertices, local_msf_edges, recv_msf_edges, merged_msf_edges);
+            // for (int i = 0; i < merged_msf_edges.size(); i++){
+            //     printf("Recv... rank: %d, node: %d %d %lf\n", rank, (int)merged_msf_edges[i][0], (int)merged_msf_edges[i][1], merged_msf_edges[i][2]);
+            // }
             printf("Proc %d: Received %d edges from processor #%d\n", rank, recv_msf_edges_size, merge_partner_rank);
+            merge(rank, number_of_vertices, local_msf_edges, recv_msf_edges, merged_msf_edges);
         }
         merge_iteration++;
         if (has_sent) { // Process has sent it's data and can terminate now
@@ -174,7 +164,8 @@ void merge_msf(int number_of_processors, int number_of_vertices, int rank, vecto
 
 /*
 接收进程将接受到的局部生成树边，加入到自己的merged_msf_edges（上一次迭代产生的局部生成树边集）中，
-然后将自己的merged_msf_edges边排序，从中不断选择权重较小的边，不产生回路时加入自己的局部生成树
+然后将merged_msf_edges边排序，清空局部生成树的边集，从中不断选择不构成回路的权重较小的边，重新构造自己的局部生成树
+然后用新构造的局部生成树复制更新merged_msf_edges
 */
 void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_edges, vector<vector<double>> &recv_msf_edges, vector<vector<double>> &merged_msf_edges) {
     int i;
@@ -186,12 +177,10 @@ void merge(int rank, int number_of_vertices, vector<vector<double>> &local_msf_e
 
     /* Sort local and received edges */
     //qsort(merged_msf_edges, merged_msf_edge_count, sizeof(), compare_edges);
-    // for (int i = 0; i < merged_msf_edges.size(); i++){
-    //     printf("%d %d %lf\n", (int)merged_msf_edges[i][0], (int)merged_msf_edges[i][1], merged_msf_edges[i][2]);
-    // }
     stable_sort(merged_msf_edges.begin(), merged_msf_edges.end(), compare);
     uf_make(number_of_vertices);
     int used_edge_index = 0;
+    local_msf_edges.erase(local_msf_edges.begin(), local_msf_edges.end());
     vector<double> min_edge;
     for (i = 0; i < merged_msf_edges.size(); i++) {
         min_edge = merged_msf_edges[used_edge_index++];
@@ -252,6 +241,7 @@ int main(int argc, char **argv) {
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &number_of_processors);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	signal(11, sig_handler);
     const char *file = "byn.mtx";
     if (argc > 2) {
         printf("Usage : ./main <filename>");
@@ -273,23 +263,11 @@ int main(int argc, char **argv) {
     int edges_per_process = number_of_edges / number_of_processors;
     printf("parse input...\n");
     parse_input(edges, rank, number_of_edges, vertices_per_process, edges_per_process);
-
-    printf("check conditions...\n");
-    // check_conditions();
-
-    printf("start parse measure...\n");
-    // start_parse_measure();
-    printf("end parse measure...\n");
-    // end_parse_measure();
-
-    printf("start computation measure...\n");
     printf("find local msf...\n");
     find_local_msf(rank, number_of_vertices, edges, local_msf_edges, merged_msf_edges);
     printf("merge msf...\n");
     merge_msf(number_of_processors, number_of_vertices, rank, local_msf_edges, merged_msf_edges);
     printf("end computation...\n");
-    printf("print measurement times...\n");
-
     MPI_Finalize();
 
     return 0;
