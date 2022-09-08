@@ -229,8 +229,10 @@ int main(int argc, const char * argv[]) {
      * 对于每个顶点维护一个hash表，记录了与其连接的非树边。
      * key为连接的顶点，value为非树边在copy_off_tree_edge中的索引
     */
+    int similarity_tree_length=copy_off_tree_edge.size()/cut_similarity_range;  //trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
+
     vector<map<int, int>> G_adja(M);
-    for(int i = 0; i < copy_off_tree_edge.size(); i++){
+    for(int i = 0; i < similarity_tree_length; i++){
         int u = copy_off_tree_edge[i][ROW]-1;
         int v = copy_off_tree_edge[i][COLUMN]-1;
         G_adja[u][v] = i;
@@ -245,7 +247,6 @@ int main(int argc, const char * argv[]) {
     */
     int num_additive_tree=0;    //记录添加边的数量
     int max_num_additive_tree = max(int(copy_off_tree_edge.size()/25), 2);  //最大需要添加的边
-    int similarity_tree_length=copy_off_tree_edge.size()/cut_similarity_range;  //trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
     int similarity_tree[similarity_tree_length];    //标记边是否和之前添加的边相似，相似则不能添加
     memset(similarity_tree, 0, sizeof(similarity_tree));
 
