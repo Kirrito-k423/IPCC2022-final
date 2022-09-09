@@ -14,6 +14,7 @@
 #include <math.h>
 #include <string.h>
 #include <sys/time.h>
+#include <mpi.h>
 
 // #include <algorithm>
 #include <parallel/algorithm>
@@ -42,12 +43,14 @@
 using namespace std;
 
 #ifdef TIME
-#define TIME_PRINT(fmt, args...) fprintf(stderr, fmt, ##args)
+#define TIME_PRINT(fmt, args...)  if(mpi_rank==0){fprintf(stderr, fmt, ##args);}
 #define printTime(s)                                                                                                                              \
-    {                                                                                                                                             \
-        gettimeofday(&endTime, NULL);                                                                                                             \
-        fprintf(stderr, "%-40s: took %.6f ms\n", s, (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0); \
-        gettimeofday(&startTime, NULL);                                                                                                           \
+    {                                 \
+        if(mpi_rank==0){                                                                                                            \
+            gettimeofday(&endTime, NULL);                                                                                                             \
+            fprintf(stderr, "%-40s: took %.6f ms\n", s, (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0); \
+            gettimeofday(&startTime, NULL);             \
+        }                                                                                              \
     }
 #else
 #define TIME_PRINT(fmt, args...) /* Don't do anything in release builds */
@@ -63,6 +66,10 @@ using namespace std;
 #define DEBUG_PRINT(fmt, args...)
 #define OMP_TIME_PRINT(fmt, args...)
 #endif
+
+//mpi
+extern int comm_size;
+extern int mpi_rank;
 
 // global value
 extern int M;

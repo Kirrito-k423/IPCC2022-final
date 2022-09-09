@@ -1,5 +1,5 @@
-CC = g++
-MPICC = mpicc
+CC = mpicxx
+MPICC = mpicxx
 
 C_FLAGS= -O3 -fopenmp 
 LIB = -lgomp
@@ -30,14 +30,14 @@ debugPrint: $(DEBUG_OBJ)
 timePrint: $(TIME_OBJ)
 	$(CC) $(TIME_OBJ) $(LIB) -o $(BUILD_DIR)/main
 
-mpi: $(SRCS)
-	$(MPICC) $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+mpi: $(OBJ)
+	$(MPICC) $^ $(LIB) -o $(BUILD_DIR)/main
 
-debugMpi: $(SRCS)
-	$(MPICC) -DDEBUG -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+debugMpi: $(DEBUG_OBJ)
+	$(MPICC) $^ $(LIB) -o $(BUILD_DIR)/main
 
-timeMpi: $(SRCS)
-	$(MPICC) -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+timeMpi: $(TIME_OBJ)
+	$(MPICC) $^ $(LIB) -o $(BUILD_DIR)/main
 
 %.o: %.cpp $(HEADERS)
 	$(CC) $(C_FLAGS) -c $< -o $@ 

@@ -11,19 +11,23 @@ int M;
 int N;
 int L;
 int largest_volume_point;
-double before_loop_subTime[7] = {0, 0, 0, 0, 0, 0, 0}; // 循环前时间,主要是check统计总时间
+double before_loop_subTime[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // 循环前时间,主要是check统计总时间
 double first_subTime[5] = {0, 0, 0, 0, 0};             // 伪逆， 循环总时间， 循环内三部分时间
 double subTime[5] = {0, 0, 0, 0, 0};                   // 伪逆， 循环总时间， 循环内三部分时间
 
 int task_pool_size;
+
+//mpi
+int comm_size;
+int mpi_rank;
 
 double saveSubTime(struct timeval startTime) {
     struct timeval tmp_end_time;
     gettimeofday(&tmp_end_time, NULL);
     return (tmp_end_time.tv_sec - startTime.tv_sec) * 1000 + (tmp_end_time.tv_usec - startTime.tv_usec) / 1000.0;
 }
-void print_time_proportion(double total_time) {
-    printf("BFS全图无权距离\t边权矩阵\t生成树\t\t寻找非树边\t等效电阻\t非树边排序\t构建map\n");
+void print_time_proportion(double total_time, double MPI_final) {
+    printf("BFS全图无权距离\t边权矩阵\t生成树\t\t寻找非树边\t等效电阻\t非树边排序\t构建map\t MPI Init\n");
     int i;
     int length = sizeof(before_loop_subTime) / sizeof(before_loop_subTime[0]);
     double before_loop_time = 0;
@@ -37,7 +41,7 @@ void print_time_proportion(double total_time) {
         printf("%4.2f%%\t\t", 100 * before_loop_subTime[i] / total_time);
     }
     printf("%4.2f%%\n", 100 * before_loop_subTime[i] / total_time);
-    printf("循环前 占比 %.2f%%\n", 100 * (before_loop_time) / total_time);
+    printf("循环前 占比 %8.2f\t%.2f%%\n", before_loop_time, 100 * (before_loop_time) / total_time);
 
     printf("\n循环1总时间\t beta\t\t 2 BFS\t\t OMP_similarity\n");
     length = sizeof(first_subTime) / sizeof(first_subTime[0]);
@@ -60,12 +64,18 @@ void print_time_proportion(double total_time) {
         printf("%4.2f%%\t\t", 100 * subTime[i] / total_time);
     }
     printf("%4.2f%%\n", 100 * subTime[i] / total_time);
-    printf("循环12 占比 %.2f%%\n", 100 * (first_subTime[1] + subTime[1]) / total_time);
+    double tmp_time = first_subTime[1] + subTime[1];
+    printf("循环12 占比 %8.2f\t%.2f%%\n",tmp_time , 100 * (tmp_time) / total_time);
+    tmp_time += before_loop_time;
+    printf("\n以上总和 占比 %8.2f\t%.2f%%\n", tmp_time, 100 * (tmp_time) / total_time);
+    printf("\nMPI final 占比 %8.2f\t%.2f%%\n", MPI_final, 100 * (MPI_final) / total_time);
+    tmp_time += MPI_final;
+    printf("\n以上总和 占比 %8.2f\t%.2f%%\n", tmp_time, 100 * (tmp_time) / total_time);
 
-    printf("\n以上总和 占比 %.2f%%\n", 100 * (before_loop_time + first_subTime[1] + subTime[0] + subTime[1]) / total_time);
+
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, char *argv[]) {
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
 
@@ -131,6 +141,14 @@ int main(int argc, const char *argv[]) {
     /**************************************************/
     struct timeval start, end, tmp_end_time;
     gettimeofday(&start, NULL);
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
+    before_loop_subTime[7] = saveSubTime(startTime);
+    printTime("MPI init");
+
 
     // find the point that has the largest volume
     largest_volume_point = 1;
@@ -457,18 +475,24 @@ int main(int argc, const char *argv[]) {
     subTime[1] = (loop_end_time.tv_sec - loop_begin_time.tv_sec) * 1000 + (loop_end_time.tv_usec - loop_begin_time.tv_usec) / 1000.0;
     TIME_PRINT("Recover off-tree edge\t\t took %f ms\n\n", first_subTime[1] + subTime[1]);
 
-    gettimeofday(&end, NULL);
-    printf("Using time : %f ms\n", (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0);
-    double total_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0;
-    /**************************************************/
-    /******************* End timing *******************/
-    /**************************************************/
-    print_time_proportion(total_time);
+    MPI_Finalize();
+    double MPI_final = saveSubTime(startTime);
+    printTime("MPI_Finalize");
 
-    FILE *out = fopen("result.txt", "w");
-    for (int i = 0; i < spanning_tree.size(); i++) {
-        fprintf(out, "%d %d\n", int(spanning_tree[i][0]), int(spanning_tree[i][1]));
+    if(mpi_rank==0){
+        gettimeofday(&end, NULL);
+        printf("Using time : %f ms\n", (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0);
+        double total_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0;
+        /**************************************************/
+        /******************* End timing *******************/
+        /**************************************************/
+        print_time_proportion(total_time, MPI_final);
+
+        FILE *out = fopen("result.txt", "w");
+        for (int i = 0; i < spanning_tree.size(); i++) {
+            fprintf(out, "%d %d\n", int(spanning_tree[i][0]), int(spanning_tree[i][1]));
+        }
+        fclose(out);
     }
-    fclose(out);
     return 0;
 }
