@@ -313,6 +313,7 @@ int main(int argc, char *argv[]) {
     printTime("before first while");
 
     int i;
+    vector<vector<int>> first_similar_list(NUM_THREADS);
     for (i = 0; i < copy_off_tree_edge.size(); i++) {
         // if there has enough off-tree edge added into spanning tree, the work has been finished
         if (num_additive_tree == first_num_additive_tree) {
@@ -359,7 +360,16 @@ int main(int argc, char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja);
+            first_similar_list.clear();
+            first_similar_list.resize(NUM_THREADS);
+            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, first_similar_list, G_adja);
+            #pragma omp parallel for num_threads(NUM_THREADS)
+            for (int k = 0; k < NUM_THREADS; k++) {
+                // DEBUG_PRINT("first_similar_list %d %ld\n",k , first_similar_list[k].size());
+                for (int j = 0; j < first_similar_list[k].size(); j++) {
+                    similarity_tree[first_similar_list[k][j]] = 1;
+                }
+            }
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;

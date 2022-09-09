@@ -28,7 +28,7 @@
 #include <string>
 #include <vector>
 
-#define NUM_THREADS 32
+#define NUM_THREADS 16
 #define first_step_OMP_percentage 0.02 //第一部分OMP的解决边数的占比 case2 3 0.01更快
 // #define task_pool_size 512           //变成由M L 确定的全局变量
 #define avail_percent 0.92
@@ -92,7 +92,7 @@ void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bf
                             vector<int> &similar_list, vector<map<int, int>> &G_adja);
 
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                               int *similarity_tree, vector<map<int, int>> &G_adja);
+                               vector<vector<int>>  &similar_list, vector<map<int, int>> &G_adja);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int *similarity_tree, int *thread_similarity_tree_address);
 
