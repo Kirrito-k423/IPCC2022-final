@@ -19,8 +19,8 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
     queue.push_back(root);
     //use zero to cut the near layer
     queue.push_back(0);
-    int mark[M];
-    memset(mark, 0, sizeof(mark));
+    int * mark = (int * )malloc(M * sizeof(int));
+    memset(mark, 0, M *sizeof(int));
     mark[root-1]=1;
     int layer=0;
     for (int j=0;j<M;j++) {
@@ -42,6 +42,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
             }
         }
     }
+    free(mark);
 }
 
 // fine_grained 细粒度

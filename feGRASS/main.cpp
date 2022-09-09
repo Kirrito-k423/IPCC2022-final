@@ -85,8 +85,8 @@ int main(int argc, const char *argv[]) {
         fin.ignore(2048, '\n');
     // declare matrix vector, volume and degree
     fin >> M >> N >> L;
-    double volume[M + 1]; // volume of every point
-    double degree[M + 1]; // degree of every point
+    double *volume = (double * )malloc((M+1)* sizeof(double)); // volume of every point
+    double *degree = (double * )malloc((M+1)* sizeof(double)); // degree of every point
     degree[0] = 0;
     volume[0] = 0;
     vector<double> triple;                  // element
@@ -141,11 +141,12 @@ int main(int argc, const char *argv[]) {
             largest_volume = volume[i];
         }
     }
+    free(volume);
 
     printTime("find largestPoint");
 
     // run bfs to get the no-weight distance between normal point with the largest-volume point
-    int no_weight_distance[M + 1]; // no-weight-distance between largest-volume point and normal point
+    int * no_weight_distance = (int * )malloc((M + 1)*sizeof(int)); // no-weight-distance between largest-volume point and normal point
     for (int i = 0; i < M + 1; i++) {
         no_weight_distance[i] = 0;
     }
@@ -206,6 +207,8 @@ int main(int argc, const char *argv[]) {
             edge.erase(edge.begin(), edge.end());
         }
     }
+    free(no_weight_distance);
+    free(degree);
     before_loop_subTime[1] = saveSubTime(startTime);
     printTime("Create edge-weight matrix")
 
@@ -277,8 +280,8 @@ int main(int argc, const char *argv[]) {
      */
     int num_additive_tree = 0;                                               //记录添加边的数量
     int max_num_additive_tree = max(int(copy_off_tree_edge.size() / 25), 2); //最大需要添加的边
-    int similarity_tree[similarity_tree_length];                             //标记边是否和之前添加的边相似，相似则不能添加
-    memset(similarity_tree, 0, sizeof(similarity_tree));
+    int *similarity_tree = (int *)malloc(similarity_tree_length * sizeof(int));                             //标记边是否和之前添加的边相似，相似则不能添加
+    memset(similarity_tree, 0, similarity_tree_length *sizeof(int));
 
     DEBUG_PRINT("max_num_additive_tree %d\n", max_num_additive_tree);
     //第一部分: 细粒度并行 前first_step_OMP_percentage部分
@@ -446,6 +449,7 @@ int main(int argc, const char *argv[]) {
             break;
         }
     }
+    free(similarity_tree);
     DEBUG_PRINT("copy_off_tree_edge EndLoop %d/%ld \t avail %d \t all %d \t %.2f%%\n", curr_edge_index, copy_off_tree_edge.size(),
                 avail_task_num, total_task_num, 100 * (double)avail_task_num / total_task_num);
 
