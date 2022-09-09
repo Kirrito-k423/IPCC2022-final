@@ -5,8 +5,13 @@ std::ifstream fin;
 
 
 bool compare(const vector<double> &a,const vector<double> &b){
-    return a[2]<b[2];
+    if (a[2] == b[2]){
+        // 数值相等时比较列号，列相等时比较行号
+        return a[1]==b[1] ? a[0] < b[0] : a[1] < b[1];      
+    }
+    return a[2]>b[2];
 }
+
 boolean should_send(int rank, int merge_iteration) {
     if ((rank / (int)pow(2, merge_iteration)) % 2 == 0) {
         return FALSE;
@@ -31,10 +36,9 @@ void parse_input(vector<vector<double>> &edges, int rank) {
     printf("rank: %d\trange start:%d\trange end:%d\n", rank, rank_range_start, rank_range_end);
 
     int i;
-    double f_edge[3];
     vector<double> edge;
     int u, v;
-    double edge_weight;
+    double edge_weight, eff_weight;
     for (i = 0; i < num_of_edges; i++) {
         fin >> u >> v;
         fin >> edge_weight;
@@ -43,11 +47,11 @@ void parse_input(vector<vector<double>> &edges, int rank) {
             edge.push_back((double)u);
             edge.push_back((double)v);
             edge.push_back(edge_weight);
+            edge.push_back(eff_weight);
             edges.push_back(edge);
             edge.erase(edge.begin(), edge.end());
         }
     }
-
     fin.close();
     MPI_Barrier(MPI_COMM_WORLD);
 }
@@ -79,10 +83,10 @@ void find_local_msf(int rank, vector<vector<double>> & edges, vector<vector<doub
         /* Add edge to MSF if it doesn't form a cycle */
         if (v_node != u_node) {
             local_msf_edges.push_back(min_edge);
-            merged_msf_edges.push_back(min_edge);
             uf_union(v_node, u_node);
         }
     }
+    merged_msf_edges.assign(local_msf_edges.begin(), local_msf_edges.end());
 }
 
 /*
@@ -111,31 +115,32 @@ void merge_msf(int rank, vector<vector<double>> &local_msf_edges, vector<vector<
         int merge_partner_rank = get_merge_partner_rank(sending, rank, merge_iteration);
         if (sending) { // should send
             int local_msf_edges_size = local_msf_edges.size();
-            double *local_msf_buf = (double *) malloc(sizeof(double) * 3 * local_msf_edges_size);
+            double *local_msf_buf = (double *) malloc(sizeof(double) * 4 * local_msf_edges_size);
             // ofstream ou("send_edges.txt");
             // 先发送边数
             MPI_Send(&local_msf_edges_size, 1, MPI_INT, merge_partner_rank, 0, MPI_COMM_WORLD);
             for(int i = 0; i < local_msf_edges_size; i++){
-                memcpy((void *)&local_msf_buf[i * 3], (void *)local_msf_edges[i].data(), 3*sizeof(double));
+                memcpy((void *)&local_msf_buf[i * 4], (void *)local_msf_edges[i].data(), 4*sizeof(double));
                 // char s[50];
                 // sprintf(s, "%d\t%d\t%.10lf\n", (int)local_msf_edges[i][0], (int)local_msf_edges[i][1], local_msf_edges[i][2]);
                 // ou << s;
             }
-            MPI_Send(local_msf_buf, local_msf_edges_size * 3, MPI_DOUBLE, merge_partner_rank, 0, MPI_COMM_WORLD);
+            MPI_Send(local_msf_buf, local_msf_edges_size * 4, MPI_DOUBLE, merge_partner_rank, 0, MPI_COMM_WORLD);
             printf("Proc %d: Sending %d edges to processor #%d\n", rank, local_msf_edges_size, merge_partner_rank);
             has_sent = TRUE;
         } else { // should receive
             int recv_msf_edges_size;
             MPI_Recv(&recv_msf_edges_size, 1, MPI_INT, merge_partner_rank, 0, MPI_COMM_WORLD, &status);
             recv_msf_edges.reserve(recv_msf_edges_size);
-            double *recv_data =  (double *) malloc(recv_msf_edges_size * sizeof(double) * 3);
-            MPI_Recv(recv_data, recv_msf_edges_size * 3, MPI_DOUBLE, merge_partner_rank, 0, MPI_COMM_WORLD, &status);
+            double *recv_data =  (double *) malloc(recv_msf_edges_size * sizeof(double) * 4);
+            MPI_Recv(recv_data, recv_msf_edges_size * 4, MPI_DOUBLE, merge_partner_rank, 0, MPI_COMM_WORLD, &status);
             vector<double> edge;
             // ofstream ou("recv_edges.txt");
             for(int k = 0; k < recv_msf_edges_size; k++){
-                edge.push_back(recv_data[k * 3]);
-                edge.push_back(recv_data[k * 3 + 1]);
-                edge.push_back(recv_data[k * 3 + 2]);
+                edge.push_back(recv_data[k * 4]);
+                edge.push_back(recv_data[k * 4 + 1]);
+                edge.push_back(recv_data[k * 4 + 2]);
+                edge.push_back(recv_data[k * 4 + 3]);
                 recv_msf_edges.push_back(edge);
                 // char s[50];
                 // sprintf(s, "%d\t%d\t%.10lf\n", (int)edge[0], (int)edge[1], edge[2]);
@@ -153,11 +158,11 @@ void merge_msf(int rank, vector<vector<double>> &local_msf_edges, vector<vector<
         }
         printf("rank: %d, iteration finished!\n", rank);
     }
-    if(rank == 0){
-        for (int i = 0; i < merged_msf_edges.size(); i++){
-            printf("%d %d %lf\n", (int)merged_msf_edges[i][0], (int)merged_msf_edges[i][1], merged_msf_edges[i][2]);
-        }
-    }
+    // if(rank == 0){
+    //     for (int i = 0; i < merged_msf_edges.size(); i++){
+    //         printf("%d %d %lf\n", (int)merged_msf_edges[i][0], (int)merged_msf_edges[i][1], merged_msf_edges[i][2]);
+    //     }
+    // }
 }
 
 
@@ -192,7 +197,7 @@ void update_local_msf_edges(int rank, vector<vector<double>> &local_msf_edges, v
         }
     }
 
-    merged_msf_edges.erase(merged_msf_edges.begin(), merged_msf_edges.end());
+    //merged_msf_edges.erase(merged_msf_edges.begin(), merged_msf_edges.end());
     merged_msf_edges.assign(local_msf_edges.begin(), local_msf_edges.end());
 }
 
@@ -228,10 +233,13 @@ int main(int argc, char **argv) {
     }
     printf("init mpi...\n");
     int rank;
+    struct timeval startTime, endTime;
+    gettimeofday(&startTime, NULL);struct timeval start, end;
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &num_of_processors);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	signal(11, sig_handler);
+    printTime("MPI init: \t\t took %f ms\n");
     const char *file = "byn.mtx";
     if (argc > 2) {
         printf("Usage : ./main <filename>");
@@ -249,8 +257,10 @@ int main(int argc, char **argv) {
     vector<vector<double>> local_msf_edges;
     vector<vector<double>> merged_msf_edges;
     parse_input(edges, rank);
+    printTime("Parse input: \t\t took %f ms\n");
     find_local_msf(rank, edges, local_msf_edges, merged_msf_edges);
     merge_msf(rank, local_msf_edges, merged_msf_edges);
+    printTime("consturct MST: \t\t took %f ms\n");
     MPI_Finalize();
 
     return 0;
