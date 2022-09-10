@@ -59,11 +59,13 @@ using namespace std;
 
 #ifdef DEBUG
 #define PIntWithName(var) printf("%s\t%d\n", #var, var)
-#define DEBUG_PRINT(fmt, args...) fprintf(stderr, fmt, ##args)
+#define DEBUG_PRINT(fmt, args...) if(mpi_rank==0){fprintf(stderr, fmt, ##args);}
+#define MPI_DEBUG_PRINT(fmt, args...) fprintf(stderr, fmt, ##args);
 #define OMP_TIME_PRINT(fmt, args...) fprintf(stderr, fmt, ##args)
 #else
 #define PIntWithName(var) /* Don't do anything in release builds */
 #define DEBUG_PRINT(fmt, args...)
+#define MPI_DEBUG_PRINT(fmt, args...)
 #define OMP_TIME_PRINT(fmt, args...)
 #endif
 
@@ -107,5 +109,7 @@ int get_task_pool_size(int total_num);
 
 void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanning_tree);
 bool compare(const vector<double> &a, const vector<double> &b);
+
+void MPI_synchronization(vector<vector<int>> &syn_vector_list, int *similarity_tree);
 
 #endif

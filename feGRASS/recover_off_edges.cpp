@@ -49,10 +49,13 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             vector<vector<int>> &similar_list, vector<map<int, int>> &G_adja){
     //mark the edge that is similar to the edge which wants to be added
+    int MPI_start = mpi_rank * bfs_process1.size() / comm_size;
+    int MPI_end = (mpi_rank+1) * bfs_process1.size() / comm_size;
+    MPI_DEBUG_PRINT("mpi_rank %d\t start end %d\t%d\n",mpi_rank,MPI_start,MPI_end);
 
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
     #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
-    for (int j=0; j<bfs_process1.size(); j++) {
+    for (int j=MPI_start; j<MPI_end; j++) {
         for (int k=0; k<bfs_process2.size(); k++) {
             int tid = omp_get_thread_num();
             if (bfs_process2[k]==0 ||bfs_process1[j]==0) {

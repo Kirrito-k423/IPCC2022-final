@@ -12,7 +12,7 @@ int N;
 int L;
 int largest_volume_point;
 double before_loop_subTime[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // 循环前时间,主要是check统计总时间
-double first_subTime[5] = {0, 0, 0, 0, 0};             // 伪逆， 循环总时间， 循环内三部分时间
+double first_subTime[6] = {0, 0, 0, 0, 0, 0};             // 伪逆， 循环总时间， 循环内三部分时间
 double subTime[5] = {0, 0, 0, 0, 0};                   // 伪逆， 循环总时间， 循环内三部分时间
 
 int task_pool_size;
@@ -43,7 +43,7 @@ void print_time_proportion(double total_time, double MPI_final) {
     printf("%4.2f%%\n", 100 * before_loop_subTime[i] / total_time);
     printf("循环前 占比 %8.2f\t%.2f%%\n", before_loop_time, 100 * (before_loop_time) / total_time);
 
-    printf("\n循环1总时间\t beta\t\t 2 BFS\t\t OMP_similarity\n");
+    printf("\n循环1总时间\t beta\t\t 2 BFS\t\t OMP_similarity\t MPI_syn\n");
     length = sizeof(first_subTime) / sizeof(first_subTime[0]);
     for (i = 1; i < length - 1; i++) {
         printf("%8.2f\t", first_subTime[i]);
@@ -363,19 +363,29 @@ int main(int argc, char *argv[]) {
             first_similar_list.clear();
             first_similar_list.resize(NUM_THREADS);
             fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, first_similar_list, G_adja);
-            #pragma omp parallel for num_threads(NUM_THREADS)
-            for (int k = 0; k < NUM_THREADS; k++) {
-                // DEBUG_PRINT("first_similar_list %d %ld\n",k , first_similar_list[k].size());
-                for (int j = 0; j < first_similar_list[k].size(); j++) {
-                    similarity_tree[first_similar_list[k][j]] = 1;
-                }
-            }
+            // #pragma omp parallel for num_threads(NUM_THREADS)
+            // for (int k = 0; k < NUM_THREADS; k++) {
+            //     DEBUG_PRINT("first_similar_list %d %ld\n",k , first_similar_list[k].size());
+            //     for (int j = 0; j < first_similar_list[k].size(); j++) {
+            //         similarity_tree[first_similar_list[k][j]] = 1;
+            //     }
+            // }
+
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
             first_subTime[4] += tmp_past_time;
             DEBUG_PRINT("copy_off_tree_edge similarity %d/%ld \t took %f ms\n", i, copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
+
+            MPI_synchronization(first_similar_list, similarity_tree);
+
+            gettimeofday(&endTime, NULL);
+            tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
+            first_subTime[5] += tmp_past_time;
+            DEBUG_PRINT("copy_off_tree_edge MPI_syn %d/%ld \t took %f ms\n", i, copy_off_tree_edge.size(), tmp_past_time);
+            gettimeofday(&startTime, NULL);
+
         }
     }
     gettimeofday(&loop_end_time, NULL);
@@ -454,6 +464,9 @@ int main(int argc, char *argv[]) {
                 if (num_additive_tree == max_num_additive_tree) {
                     break;
                 }
+
+                if(similar_list[i].size()>20)
+                    DEBUG_PRINT("similar_list %d %ld\n",i , similar_list[i].size());
 
                 for (int j = 0; j < similar_list[i].size(); j++) {
                     similarity_tree[similar_list[i][j]] = 1;

@@ -24,6 +24,9 @@ export OMP_PROC_BIND=close;export OMP_PLACES=cores
 if [ ! -d ../build/bin ];then
     mkdir -p ../build/bin
 fi
+if [ ! -d ../build/obj ];then
+    mkdir -p ../build/obj
+fi
 
 timestamp=`date +"%Y-%m-%d~%H"`
 LOG=run_case${case}.$timestamp.log
