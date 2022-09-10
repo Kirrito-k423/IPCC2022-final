@@ -13,7 +13,7 @@ int L;
 int largest_volume_point;
 double before_loop_subTime[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // 循环前时间,主要是check统计总时间
 double first_subTime[6] = {0, 0, 0, 0, 0, 0};             // 伪逆， 循环总时间， 循环内三部分时间
-double subTime[5] = {0, 0, 0, 0, 0};                   // 伪逆， 循环总时间， 循环内三部分时间
+double subTime[6] = {0, 0, 0, 0, 0, 0};                   // 伪逆， 循环总时间， 循环内三部分时间
 
 int task_pool_size;
 
@@ -27,6 +27,7 @@ double saveSubTime(struct timeval startTime) {
     return (tmp_end_time.tv_sec - startTime.tv_sec) * 1000 + (tmp_end_time.tv_usec - startTime.tv_usec) / 1000.0;
 }
 void print_time_proportion(double total_time, double MPI_final) {
+    total_time -= before_loop_subTime[7]; 
     printf("BFS全图无权距离\t边权矩阵\t生成树\t\t寻找非树边\t等效电阻\t非树边排序\t构建map\t MPI Init\n");
     int i;
     int length = sizeof(before_loop_subTime) / sizeof(before_loop_subTime[0]);
@@ -54,7 +55,7 @@ void print_time_proportion(double total_time, double MPI_final) {
     }
     printf("%4.2f%%\n", 100 * first_subTime[i] / total_time);
 
-    printf("\n循环2总时间\t 任务划分\t OMP\t merge\n");
+    printf("\n循环2总时间\t 任务划分\t OMP\t\tmerge\t\t MPI_syn \n");
     length = sizeof(subTime) / sizeof(subTime[0]);
     for (i = 1; i < length - 1; i++) {
         printf("%8.2f\t", subTime[i]);
@@ -71,8 +72,8 @@ void print_time_proportion(double total_time, double MPI_final) {
     printf("\nMPI final 占比 %8.2f\t%.2f%%\n", MPI_final, 100 * (MPI_final) / total_time);
     tmp_time += MPI_final;
     printf("\n以上总和 占比 %8.2f\t%.2f%%\n", tmp_time, 100 * (tmp_time) / total_time);
-
-
+    tmp_time -= before_loop_subTime[7];
+    printf("\n以上总和去除MPI_Init 占比 %8.2f\t%.2f%%\n", tmp_time, 100 * (tmp_time) / total_time);
 }
 
 int main(int argc, char *argv[]) {
@@ -378,7 +379,7 @@ int main(int argc, char *argv[]) {
             DEBUG_PRINT("copy_off_tree_edge similarity %d/%ld \t took %f ms\n", i, copy_off_tree_edge.size(), tmp_past_time);
             gettimeofday(&startTime, NULL);
 
-            MPI_synchronization(first_similar_list, similarity_tree);
+            fg_MPI_synchronization(first_similar_list, similarity_tree);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
@@ -427,8 +428,11 @@ int main(int argc, char *argv[]) {
         // 并行获得每条off-tree边的相似边列表
         similar_list.clear();
         similar_list.resize(task_pool_size);
+        int MPI_start = mpi_rank * task_pool_size / comm_size;
+        int MPI_end = (mpi_rank+1) * task_pool_size / comm_size;
+        MPI_DEBUG_PRINT("mpi_rank %d\t start end %d\t%d\n",mpi_rank,MPI_start,MPI_end);
 #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic)
-        for (i = 0; i < task_pool_size; i++) {
+        for (i = MPI_start; i < MPI_end; i++) {
             int edge_point1 = int(copy_off_tree_edge[task_list[i]][0]);
             int edge_point2 = int(copy_off_tree_edge[task_list[i]][1]);
             int beta = calculate_beta(edge_point1, edge_point2);
@@ -453,6 +457,16 @@ int main(int argc, char *argv[]) {
         DEBUG_PRINT("copy_off_tree_edge OMP %d/%ld \t took %f ms\n", curr_edge_index, copy_off_tree_edge.size(), tmp_past_time);
         gettimeofday(&startTime, NULL);
 
+        int *vector_size_list = (int *)malloc(task_pool_size * sizeof(int));
+        int *vector_displs_list = (int *)malloc(task_pool_size * sizeof(int));
+        int *recv_buf = MPI_synchronization(vector_size_list, vector_displs_list, MPI_start, MPI_end, similar_list);
+
+        gettimeofday(&endTime, NULL);
+        tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
+        subTime[5] += tmp_past_time;
+        DEBUG_PRINT("copy_off_tree_edge MPI_syn %d/%ld \t took %f ms\n", curr_edge_index, copy_off_tree_edge.size(), tmp_past_time);
+        gettimeofday(&startTime, NULL);
+
         int tmp_avail_task_num = 0;
         //串行处理similarity_list,合并到similarity_tree里,判断何时break
         for (i = 0; i < task_pool_size; i++) {
@@ -465,14 +479,18 @@ int main(int argc, char *argv[]) {
                     break;
                 }
 
-                if(similar_list[i].size()>20)
-                    DEBUG_PRINT("similar_list %d %ld\n",i , similar_list[i].size());
-
-                for (int j = 0; j < similar_list[i].size(); j++) {
-                    similarity_tree[similar_list[i][j]] = 1;
+                if(vector_size_list[i]>20)
+                    DEBUG_PRINT("similar_list %d %d\n",i , vector_size_list[i]);
+                int buf_offset = vector_displs_list[i];
+                for (int j = 0; j < vector_size_list[i]; j++) {
+                    similarity_tree[recv_buf[buf_offset + j]] = 1;
                 }
             }
         }
+        free(vector_size_list);
+        free(vector_displs_list);
+        free(recv_buf);
+
 
         avail_task_num += tmp_avail_task_num;
         total_task_num += task_pool_size;

@@ -110,6 +110,8 @@ int get_task_pool_size(int total_num);
 void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanning_tree);
 bool compare(const vector<double> &a, const vector<double> &b);
 
-void MPI_synchronization(vector<vector<int>> &syn_vector_list, int *similarity_tree);
+void fg_MPI_synchronization(vector<vector<int>> &syn_vector_list, int *similarity_tree);
+int* MPI_synchronization(int *vector_size_list, int *vector_displs_list,int vector_start, int vector_end, vector<vector<int>> &syn_vector_list);
+ 
 
 #endif

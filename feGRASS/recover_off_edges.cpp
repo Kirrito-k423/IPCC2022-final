@@ -111,7 +111,7 @@ int get_task_pool_size(int total_num){
     for(; i < total_num; i++){
         int avail_block_num = i * avail_percent;
         int loop_num = total_num / avail_block_num;
-        if((loop_num+1) * avail_block_num - total_num < offset){
+        if(i%2==0 && (loop_num+1) * avail_block_num - total_num < offset){ //粗粒度MPI的原因，要是偶数
             break;
         }
     }
