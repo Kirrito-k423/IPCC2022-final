@@ -9,15 +9,18 @@ LIB = -lgomp
 INCLUDEPATH = feGRASS
 SRC_DIR = feGRASS
 BUILD_DIR = build/bin
+OBJ_DIR = build/obj
 
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+TMP = $(patsubst %.cpp,${OBJ_DIR}/%.cpp,$(notdir ${SRCS}))
 HEADERS = $(wildcard $(SRC_DIR)/*.h)
-OBJ = $(SRCS:.cpp=.o)
-DEBUG_OBJ = $(SRCS:.cpp=_debug.o)
-TIME_OBJ = $(SRCS:.cpp=_time.o)
-FILENAME = $(SRCS:.cpp=)
+OBJ = $(TMP:.cpp=.o)
+DEBUG_OBJ = $(TMP:.cpp=_debug.o)
+TIME_OBJ = $(TMP:.cpp=_time.o)
+FILENAME = $(TMP:.cpp=)
 
 $(info    SRCS is: $(SRCS))
+$(info    OBJ is: $(OBJ))
 $(info    HEADERS is: $(HEADERS))
 
 .DEFAULT_GOAL := main
@@ -39,18 +42,20 @@ debugMpi: $(SRCS)
 timeMpi: $(SRCS)
 	$(MPICC) -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
 
-%.o: %.cpp $(HEADERS)
+${OBJ_DIR}/%.o: ${SRC_DIR}/%.cpp $(HEADERS)
 	$(CC) $(C_FLAGS) -c $< -o $@ 
-%_debug.o: %.cpp $(HEADERS)
+${OBJ_DIR}/%_debug.o: ${SRC_DIR}/%.cpp $(HEADERS)
 	$(CC) -DDEBUG -DTIME $(C_FLAGS) -c $< -o $@ 
-%_time.o: %.cpp $(HEADERS)
+${OBJ_DIR}/%_time.o: ${SRC_DIR}/%.cpp $(HEADERS)
 	$(CC) -DTIME $(C_FLAGS) -c $< -o $@ 
 
 
 checkdirs: $(BUILD_DIR)
 $(BUILD_DIR):
-	@mkdir -p $@
+	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(OBJ_DIR)
+
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR)/main $(SRC_DIR)/*.o
+	rm -rf $(BUILD_DIR)/main $(OBJ_DIR)/*.o
