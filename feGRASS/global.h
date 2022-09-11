@@ -100,5 +100,6 @@ int get_task_pool_size(int total_num);
 
 void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanning_tree);
 bool compare(const vector<double> &a, const vector<double> &b);
+bool compare2(const vector<double> &a,const vector<double> &b);
 void parallel_sort(vector<vector<double>> &edges);
 #endif

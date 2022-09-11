@@ -61,7 +61,9 @@ void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanni
     gettimeofday(&startTime, NULL);                                                                         \
     int M = edge_matrix.size();
     //sort according to the weight of each edge
+    // gnu_parallel 会比并行排序更快一些
     __gnu_parallel::stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
+    // parallel_sort(edge_matrix);
     printTime("kruscal: Sort G edge")
 
     // //run kruscal to get largest-effect-weight spanning tree
