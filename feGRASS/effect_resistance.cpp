@@ -178,10 +178,13 @@ void caculate_resistance(vector<edge_t> &spanning_tree, vector<edge_t> &off_tree
         edge_list[tid].push_back(edge);
     }
 
+    int size=0;
+    copy_off_tree_edge.resize(off_tree_edge.size());
+    edge_t *dst = copy_off_tree_edge.data();
     for(int i=0; i<NUM_THREADS; i++){
-        for(int j=0; j<edge_list[i].size(); j++){
-            copy_off_tree_edge.push_back(edge_list[i][j]);
-        }
+        int len = edge_list[i].size();
+        mempcpy(dst+size, edge_list[i].data(), len*sizeof(edge_t));
+        size += len;
     }
     printTime("resistance: E-V+1(off-tree) get_LCA")
 }
