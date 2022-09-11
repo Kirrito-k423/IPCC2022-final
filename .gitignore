@@ -12,3 +12,4 @@ data/data.mtx
 !run/ks2010.tar.gz
 *.o
 data/thupg*
+run/power-grid-data

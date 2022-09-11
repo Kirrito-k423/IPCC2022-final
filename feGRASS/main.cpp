@@ -89,9 +89,9 @@ int main(int argc, const char *argv[]) {
     double *degree = (double * )malloc((M+1)* sizeof(double)); // degree of every point
     degree[0] = 0;
     volume[0] = 0;
-    vector<double> triple;                  // element
-    vector<vector<double>> triple1;         // elements in the same column
-    vector<vector<vector<double>>> triple2; // the whole matrix
+    edge_t edge;                  // element
+    vector<edge_t> triple1;         // elements in the same column
+    vector<vector<edge_t>> triple2; // the whole matrix
 
     // fill matrix vector and calculate the degree and volume of every point
     int column = 1;
@@ -113,16 +113,15 @@ int main(int argc, const char *argv[]) {
         }
         volume[column] = volume[column] + data;
         degree[column] = degree[column] + 1;
-        triple.push_back(m);
-        triple.push_back(n);
-        triple.push_back(data);
-        triple1.push_back(triple);
-        triple.erase(triple.begin(), triple.end());
+        edge.u = m;
+        edge.v = n;
+        edge.w = data;
+        triple1.push_back(edge);
     }
     fin.close();
     triple2.push_back(triple1);
     // free the memory of triple1
-    vector<vector<double>>().swap(triple1);
+    vector<edge_t>().swap(triple1);
 
     printTime("Before timing");
 
@@ -168,7 +167,7 @@ int main(int argc, const char *argv[]) {
             continue;
         }
         for (int i = 0; i < triple2[point - 1].size(); i++) {
-            int search_point = int(triple2[point - 1][i][ROW]);
+            int search_point = int(triple2[point - 1][i].u);
             if (no_weight_distance[search_point] == 0) {
                 process.push(search_point);
                 no_weight_distance[search_point] = distance;
@@ -182,30 +181,26 @@ int main(int argc, const char *argv[]) {
     before_loop_subTime[0] = saveSubTime(startTime);
     printTime("BFS G get no weight distance")
 
-        // construct the edge-weight matrix
-        vector<double>
-            edge;                       // [point_index1, point_index2, W_eff, W_ij]
-    vector<vector<double>> edge_matrix; // to run the krascal
+    // construct the edge-weight matrix
+    // edge_t edge;                       // [point_index1, point_index2, W_eff, W_ij]
+    vector<edge_t> edge_matrix; // to run the krascal
     edge_matrix.reserve(L/2);
     for (int i = 0; i < triple2.size(); i++) {
         for (int j = 0; j < triple2[i].size(); j++) {
-            if (triple2[i][j][COLUMN] <= triple2[i][j][ROW]) {
+            if (triple2[i][j].v <= triple2[i][j].u) {
                 break;
             }
-            edge.push_back(triple2[i][j][ROW]);
-            edge.push_back(triple2[i][j][COLUMN]);
+            edge = triple2[i][j];
             // push effect valuable into vector
-            double a = degree[int(edge[0])];
-            double b = degree[int(edge[1])];
+            double a = degree[edge.u];
+            double b = degree[edge.v];
             double c = a >= b ? a : b;
-            double d = triple2[i][j][VALUE];
-            double e = no_weight_distance[int(edge[0])];
-            double f = no_weight_distance[int(edge[1])];
+            double d = edge.w;
+            double e = no_weight_distance[edge.u];
+            double f = no_weight_distance[edge.v];
             double g = d * log(c) / (f + e);
-            edge.push_back(g);
-            edge.push_back(d);
+            edge.eff_w = g;
             edge_matrix.push_back(edge); // size = L/2, 总边数
-            edge.erase(edge.begin(), edge.end());
         }
     }
     free(no_weight_distance);
@@ -213,18 +208,17 @@ int main(int argc, const char *argv[]) {
     before_loop_subTime[1] = saveSubTime(startTime);
     printTime("Create edge-weight matrix")
 
-        // run kruscal to get largest-effect-weight spanning tree
-        vector<vector<double>>
-            spanning_tree; // spanning tree
+    // run kruscal to get largest-effect-weight spanning tree
+    vector<edge_t> spanning_tree; // spanning tree
     kruscal(edge_matrix, spanning_tree);
     before_loop_subTime[2] = saveSubTime(startTime);
     printTime("kruscal total");
 
     // construct the off-tree edge
-    vector<vector<double>> off_tree_edge;
+    vector<edge_t> off_tree_edge;
     int inside = 0; // To show which trees are in the spanning tree
     for (int i = 0; i < edge_matrix.size(); i++) {
-        if (edge_matrix[i][0] == spanning_tree[inside][0] && edge_matrix[i][1] == spanning_tree[inside][1]) {
+        if (edge_matrix[i].u == spanning_tree[inside].u && edge_matrix[i].v == spanning_tree[inside].v) {
             inside++;
             // to avoid inside crossing the border of spanning_tree
             if (inside == spanning_tree.size()) {
@@ -234,14 +228,13 @@ int main(int argc, const char *argv[]) {
         }
         off_tree_edge.push_back(edge_matrix[i]);
     }
-    vector<vector<double>>().swap(edge_matrix);
+    vector<edge_t>().swap(edge_matrix);
 
     before_loop_subTime[3] = saveSubTime(startTime);
     printTime("Construct off-tree edge")
 
-        // calculate the resistance of each off_tree edge
-        vector<vector<double>>
-            copy_off_tree_edge; // to resore the effect resistance
+    // calculate the resistance of each off_tree edge
+    vector<edge_t> copy_off_tree_edge; // to resore the effect resistance
     caculate_resistance(spanning_tree, off_tree_edge, copy_off_tree_edge);
     // write_edge(spanning_tree, "edge-spanning_tree.log");
     // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge.log");
@@ -249,9 +242,8 @@ int main(int argc, const char *argv[]) {
     before_loop_subTime[4] = saveSubTime(startTime);
     printTime("Calculate resistance total")
 
-        // sort by effect resistance
-        vector<vector<double>>()
-            .swap(off_tree_edge);
+    // sort by effect resistance
+    vector<edge_t>().swap(off_tree_edge);
     __gnu_parallel::stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
     // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
 
@@ -266,8 +258,8 @@ int main(int argc, const char *argv[]) {
 
     vector<map<int, int>> G_adja(M);
     for (int i = 0; i < similarity_tree_length; i++) {
-        int u = copy_off_tree_edge[i][ROW] - 1;
-        int v = copy_off_tree_edge[i][COLUMN] - 1;
+        int u = copy_off_tree_edge[i].u - 1;
+        int v = copy_off_tree_edge[i].v - 1;
         G_adja[u][v] = i;
         G_adja[v][u] = i;
     }
@@ -313,8 +305,8 @@ int main(int argc, const char *argv[]) {
             }
             spanning_tree.push_back(copy_off_tree_edge[i]);
 
-            int edge_point1 = int(copy_off_tree_edge[i][0]);
-            int edge_point2 = int(copy_off_tree_edge[i][1]);
+            int edge_point1 = copy_off_tree_edge[i].u;
+            int edge_point2 = copy_off_tree_edge[i].v;
 
             gettimeofday(&startTime, NULL);
             int beta = calculate_beta(edge_point1, edge_point2);
@@ -392,8 +384,8 @@ int main(int argc, const char *argv[]) {
         similar_list.resize(task_pool_size);
 #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic)
         for (i = 0; i < task_pool_size; i++) {
-            int edge_point1 = int(copy_off_tree_edge[task_list[i]][0]);
-            int edge_point2 = int(copy_off_tree_edge[task_list[i]][1]);
+            int edge_point1 = int(copy_off_tree_edge[task_list[i]].u);
+            int edge_point2 = int(copy_off_tree_edge[task_list[i]].v);
             int beta = calculate_beta(edge_point1, edge_point2);
 
             // choose two nodes as root node respectively to run belta bfs
@@ -468,7 +460,7 @@ int main(int argc, const char *argv[]) {
 
     FILE *out = fopen("result.txt", "w");
     for (int i = 0; i < spanning_tree.size(); i++) {
-        fprintf(out, "%d %d\n", int(spanning_tree[i][0]), int(spanning_tree[i][1]));
+        fprintf(out, "%d %d\n", spanning_tree[i].u, spanning_tree[i].v);
     }
     fclose(out);
     return 0;

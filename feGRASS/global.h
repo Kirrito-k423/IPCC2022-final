@@ -64,13 +64,19 @@ using namespace std;
 #define OMP_TIME_PRINT(fmt, args...)
 #endif
 
+struct edge{
+    int u, v;
+    double eff_w, w;
+};
+typedef struct edge edge_t;
+
 // global value
 extern int M;
 extern int N;
 extern int L;
 extern int largest_volume_point;
 
-extern vector<vector<vector<double>>> adja_list;
+extern vector<vector<edge_t>> adja_list;
 extern double *dis;
 extern int *parent;
 extern int *no_weight_dis;
@@ -78,9 +84,6 @@ extern int *no_weight_dis;
 // recover_off_edges.cpp
 int calculate_beta(int i, int j);
 void beta_BFS(int beta, std::vector<int> &queue, int root);
-void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                            int *similarity_tree, vector<vector<double>> &copy_off_tree_edge);
-
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
                             vector<int> &similar_list, vector<map<int, int>> &G_adja);
 
@@ -90,15 +93,15 @@ void check_next_range_similarity_tree(int i, int *similarity_tree, int total_ran
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int *similarity_tree, int *thread_similarity_tree_address);
 
 // effect_resistance.cpp
-void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<double>> &off_tree_edge, vector<vector<double>> &copy_off_tree_edge);
-void write_edge(vector<vector<double>> &edge, const char *file);
+void caculate_resistance(vector<edge_t> &spanning_tree, vector<edge_t> &off_tree_edge, vector<edge_t> &copy_off_tree_edge);
+void write_edge(vector<edge_t> &edge, const char *file);
 int get_LCA(int i, int j, int *parent, int *no_weight_dis);
 
 void print_M1_Array(string name, int *toPrint);
 void printStack(string name, stack<int> toPrint);
 int get_task_pool_size(int total_num);
 
-void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanning_tree);
-bool compare(const vector<double> &a, const vector<double> &b);
+void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree);
+bool compare(const edge_t &a, const edge_t &b);
 
 #endif

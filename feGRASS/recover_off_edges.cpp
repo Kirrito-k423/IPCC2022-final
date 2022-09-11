@@ -34,7 +34,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
         else{
             int point = queue[j]-1;
             for (int i=0; i<adja_list[point].size(); i++) {
-                int search_point = adja_list[point][i][0];
+                int search_point = adja_list[point][i].u;
                 if(mark[search_point]==0){
                     queue.push_back(search_point+1);
                     mark[search_point] = 1;
