@@ -186,6 +186,7 @@ int main(int argc, const char *argv[]) {
         vector<double>
             edge;                       // [point_index1, point_index2, W_eff, W_ij]
     vector<vector<double>> edge_matrix; // to run the krascal
+    edge_matrix.reserve(L/2);
     for (int i = 0; i < triple2.size(); i++) {
         for (int j = 0; j < triple2[i].size(); j++) {
             if (triple2[i][j][COLUMN] <= triple2[i][j][ROW]) {
