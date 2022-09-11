@@ -22,29 +22,29 @@ $(info    HEADERS is: $(HEADERS))
 
 .DEFAULT_GOAL := main
 main : $(OBJ)
-	$(CC) $(OBJ) $(LIB) -o $(BUILD_DIR)/main
+	$(CC) $(OBJ) $(LIB) -g -o $(BUILD_DIR)/main
 
 debugPrint: $(DEBUG_OBJ)
-	$(CC) $(DEBUG_OBJ) $(LIB) -o $(BUILD_DIR)/main
+	$(CC) $(DEBUG_OBJ) $(LIB) -g -o $(BUILD_DIR)/main
 
 timePrint: $(TIME_OBJ)
-	$(CC) $(TIME_OBJ) $(LIB) -o $(BUILD_DIR)/main
+	$(CC) $(TIME_OBJ) -g $(LIB) -o $(BUILD_DIR)/main
 
 mpi: $(SRCS)
-	$(MPICC) $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+	$(MPICC) $^ $(C_FLAGS) -g -o $(BUILD_DIR)/main
 
 debugMpi: $(SRCS)
-	$(MPICC) -DDEBUG -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+	$(MPICC) -DDEBUG -DTIME $^ $(C_FLAGS) -g -o $(BUILD_DIR)/main
 
 timeMpi: $(SRCS)
-	$(MPICC) -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
+	$(MPICC) -DTIME $^ $(C_FLAGS) -g -o $(BUILD_DIR)/main
 
 %.o: %.cpp $(HEADERS)
-	$(CC) $(C_FLAGS) -c $< -o $@ 
+	$(CC) $(C_FLAGS) -g -c $< -o $@ 
 %_debug.o: %.cpp $(HEADERS)
-	$(CC) -DDEBUG -DTIME $(C_FLAGS) -c $< -o $@ 
+	$(CC) -DDEBUG -DTIME $(C_FLAGS) -g -c $< -o $@ 
 %_time.o: %.cpp $(HEADERS)
-	$(CC) -DTIME $(C_FLAGS) -c $< -o $@ 
+	$(CC) -DTIME $(C_FLAGS)  -g -c $< -o $@ 
 
 
 checkdirs: $(BUILD_DIR)
