@@ -40,6 +40,10 @@ EOF
 ) 
     LOG=run_case_${basename}.$timestamp.log
 fi
+if [ ! -d ./logs ];then
+    mkdir -p ./logs
+fi
+LOG="logs/"$LOG
 
 #get commit
 git log -1 > $LOG
