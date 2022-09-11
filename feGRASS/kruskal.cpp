@@ -4,6 +4,14 @@ bool compare(const vector<double> &a,const vector<double> &b){
     return a[2]>b[2];
 }
 
+bool compare2(const vector<double> &a,const vector<double> &b){
+    if (a[2] == b[2]){
+    // 数值相等时比较列号，列相等时比较行号
+        return a[1]==b[1] ? a[0] < b[0] : a[1] < b[1];
+    }
+    return a[2]>b[2];
+}
+
 //disjoint set union
 class DSU
 {
