@@ -163,8 +163,11 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
     // printf("path: \n");
     // debug_print_path(1859, 3044, parent, no_weight_dis);
 
-    vector<double> edge;
+    vector<vector<vector<double>>> edge_list(NUM_THREADS);
+    #pragma omp parallel for num_threads(NUM_THREADS) schedule(static)
     for (int i=0; i<off_tree_edge.size(); i++) {
+        const int tid=omp_get_thread_num();
+        vector<double> edge;
         int edge_point1 = int(off_tree_edge[i][0])-1;
         int edge_point2 = int(off_tree_edge[i][1])-1;
         edge.push_back(edge_point1+1);
@@ -179,8 +182,13 @@ void caculate_resistance(vector<vector<double>> &spanning_tree, vector<vector<do
         edge.push_back(eff_resist * off_tree_edge[i][3]);
 
         edge.push_back(off_tree_edge[i][3]);
-        copy_off_tree_edge.push_back(edge);
-        edge.erase(edge.begin(),edge.end());
+        edge_list[tid].push_back(edge);
+    }
+
+    for(int i=0; i<NUM_THREADS; i++){
+        for(int j=0; j<edge_list[i].size(); j++){
+            copy_off_tree_edge.push_back(edge_list[i][j]);
+        }
     }
     printTime("resistance: E-V+1(off-tree) get_LCA")
 }
