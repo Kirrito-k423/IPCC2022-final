@@ -34,7 +34,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
         else{
             int point = queue[j]-1;
             for (int i=0; i<adja_list[point].size(); i++) {
-                int search_point = adja_list[point][i][0];
+                int search_point = adja_list[point][i].u;
                 if(mark[search_point]==0){
                     queue.push_back(search_point+1);
                     mark[search_point] = 1;
@@ -111,7 +111,7 @@ int get_task_pool_size(int total_num){
     for(; i < total_num; i++){
         int avail_block_num = i * avail_percent;
         int loop_num = total_num / avail_block_num;
-        if(i%2==0 && (loop_num+1) * avail_block_num - total_num < offset){ //粗粒度MPI的原因，要是偶数
+        if(i%2==0 && (loop_num+1) * avail_block_num - total_num < OFFSET){ //粗粒度MPI的原因，要是偶数
             break;
         }
     }

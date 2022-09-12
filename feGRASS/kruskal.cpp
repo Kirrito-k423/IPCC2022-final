@@ -1,7 +1,11 @@
 #include "global.h"
 
-bool compare(const vector<double> &a,const vector<double> &b){
-    return a[2]>b[2];
+bool compare(const edge_t &a,const edge_t &b){
+    return a.eff_w > b.eff_w;
+}
+
+int cmp(const void *a, const void *b) {
+    return ((edge_t *)a)->eff_w < ((edge_t *)b)->eff_w;
 }
 
 //disjoint set union
@@ -48,12 +52,14 @@ public:
 };
 
 
-void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanning_tree){
+void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree){
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);                                                                         \
     int M = edge_matrix.size();
     //sort according to the weight of each edge
-    __gnu_parallel::stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
+    // stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
+    // __gnu_parallel::stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
+    p_mergesort<edge_t>(edge_matrix, SORT_NUM_THREADS, cmp);
     printTime("kruscal: Sort G edge")
 
     // //run kruscal to get largest-effect-weight spanning tree
@@ -87,11 +93,11 @@ void kruscal(vector<vector<double>> &edge_matrix, vector<vector<double>> &spanni
     //     }
     // }
 
-    DSU dsu(M);
+    DSU dsu(M+1);
     int edge_cnt = 0;   //记录添加的边数，达到M-1时停止
     for (int i=0; i<edge_matrix.size(); i++) {
-        int u = int(edge_matrix[i][0]);
-        int v = int(edge_matrix[i][1]);
+        int u = int(edge_matrix[i].u);
+        int v = int(edge_matrix[i].v);
         if(!dsu.same_set(u, v)){
             spanning_tree.push_back(edge_matrix[i]);
             dsu.unite(u, v);

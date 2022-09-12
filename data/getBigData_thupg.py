@@ -2,13 +2,32 @@ from icecream import ic
 import re
 import time
 from tqdm import tqdm
+import sys
+import os
+
+# example: python ../data/getBigData_thupg.py power-grid-data/thupg/thupg1.spice
+# example: python ../data/getBigData_thupg.py power-grid-data/thupg/thupg1.spice .
+if len(sys.argv)==1:
+	filename="thupg1.spice"
+elif len(sys.argv)==2:
+	filename=sys.argv[1]
+	outputdir=os.path.dirname(filename)
+elif len(sys.argv)==3:
+	filename=sys.argv[1]
+	outputdir=sys.argv[2]
+else:
+	print("Usage: %s spice_file [outputdir]"%(sys.argv[0]))
+	exit(-1)
 ic.disable()
-filename="thupg1.spice"
-# filename="test.spice"
-write_filename="thupg.mtx"
+write_filename=os.path.basename(filename)
+write_filename=write_filename.replace("spice", "mtx")
+write_filename=os.path.join(outputdir, write_filename)
 matchLayer="2"
 sorted_dot=dict()
 write_list=[]
+write_filename=write_filename+"_layer_"+matchLayer
+print("input:",filename)
+print("output:", write_filename)
 
 dot_number=1
 fp = open(filename, "r")
@@ -41,8 +60,8 @@ for line in tqdm(fp.readlines(),total=num_file): #读取每一行
 write_list.sort(key = lambda x: x[1])
 ic(len(write_list))
 
-fw = open(write_filename+"_layer_"+matchLayer, "w")
-fw.write("{} {} {}\n".format(dot_number-1,dot_number-1,len(write_list)))
+fw = open(write_filename, "w")
+fw.write("{} {} {}\n".format(dot_number-1,dot_number-1,len(write_list)))	#添加最后一个点时，dot_number还加了1，需要减去
 for line in tqdm(write_list):
 	# write each item on a new line
 	fw.write("%d %d %s\n"%(line[0], line[1], line[2]))
