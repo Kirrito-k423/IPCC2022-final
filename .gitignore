@@ -6,5 +6,10 @@ result.txt
 run/ks2010.mtx
 run/ks2010-conv.mtx
 run/refer-ks2010.txt
+run/ibmpg*.mtx
+data/ibmpg*
+data/data.mtx
 !run/ks2010.tar.gz
 *.o
+data/thupg*
+run/power-grid-data

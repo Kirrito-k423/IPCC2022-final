@@ -19,8 +19,8 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
     queue.push_back(root);
     //use zero to cut the near layer
     queue.push_back(0);
-    int mark[M];
-    memset(mark, 0, sizeof(mark));
+    int * mark = (int * )malloc(M * sizeof(int));
+    memset(mark, 0, M *sizeof(int));
     mark[root-1]=1;
     int layer=0;
     for (int j=0;j<M;j++) {
@@ -34,7 +34,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
         else{
             int point = queue[j]-1;
             for (int i=0; i<adja_list[point].size(); i++) {
-                int search_point = adja_list[point][i][0];
+                int search_point = adja_list[point][i].u;
                 if(mark[search_point]==0){
                     queue.push_back(search_point+1);
                     mark[search_point] = 1;
@@ -42,103 +42,39 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
             }
         }
     }
-}
-
-void adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            int *similarity_tree, vector<vector<double>> &copy_off_tree_edge){
-    //mark the edge that is similar to the edge which wants to be added
-    int point_pair=0;
-    int hit_num=0;
-    int avail_hit=0;
-
-    int hit_cut_num=0;
-    int avail_cut_hit=0;
-
-    int hit_next_num=0;
-    int avail_next_hit=0;
-    for (int j=0; j<bfs_process1.size(); j++) {
-        if (bfs_process1[j]==0) {
-            continue;
-        }
-        for (int k=0; k<bfs_process2.size(); k++) {
-            if (bfs_process2[k]==0) {
-                continue;
-            }
-            if (bfs_process1[j]==bfs_process2[k]) {
-                continue;
-            }
-            point_pair++;
-            for (int z=i; z<copy_off_tree_edge.size()/cut_similarity_range; z++) { // 余下的off_edge里，如果该边的两点，有一点在两个bfs的点集里，则该边视作similar
-                if ((copy_off_tree_edge[z][0]==bfs_process1[j]&&
-                    copy_off_tree_edge[z][1]==bfs_process2[k]) ||
-                     (copy_off_tree_edge[z][0]==bfs_process2[k]&&
-                        copy_off_tree_edge[z][1]==bfs_process1[j])){
-                    hit_num++;
-                    if(similarity_tree[z]==0)
-                        avail_hit++;
-                    if(z<i+next_range){
-                        hit_next_num++;
-                        if(similarity_tree[z]==0)
-                            avail_next_hit++;
-                    }
-                    if(z<copy_off_tree_edge.size()/cut_similarity_range){
-                        hit_cut_num++;
-                        if(similarity_tree[z]==0)
-                            avail_cut_hit++;
-                    }
-                    similarity_tree[z]=1;
-                }
-            }
-        }
-    }
-    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d\t total\t %d\n",i,hit_num,avail_hit,point_pair);
-    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_num/point_pair,100*(double)avail_hit/point_pair);
-    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tnext\n",i,hit_next_num,avail_next_hit);
-    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_next_num/point_pair,100*(double)avail_next_hit/point_pair);
-    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %d \t avail\t %d \tcut\n",i,hit_cut_num,avail_cut_hit);
-    // DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t hit\t %.2f%% \t avail\t %.2f%%\n",i,100*(double)hit_cut_num/point_pair,100*(double)avail_cut_hit/point_pair);
-
+    free(mark);
 }
 
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            int *similarity_tree, map<uint64_t, uint32_t> &off_tree_edge_map){
+                            vector<vector<int>> &similar_list, vector<map<int, int>> &G_adja){
     //mark the edge that is similar to the edge which wants to be added
+    int MPI_start = mpi_rank * bfs_process1.size() / comm_size;
+    int MPI_end = (mpi_rank+1) * bfs_process1.size() / comm_size;
+    MPI_DEBUG_PRINT("mpi_rank %d\t start end %d\t%d\n",mpi_rank,MPI_start,MPI_end);
 
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
     #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
-    for (int j=0; j<bfs_process1.size(); j++) {
+    for (int j=MPI_start; j<MPI_end; j++) {
         for (int k=0; k<bfs_process2.size(); k++) {
+            int tid = omp_get_thread_num();
             if (bfs_process2[k]==0 ||bfs_process1[j]==0) {
                 continue;
             }
             if (bfs_process1[j]==bfs_process2[k]) {
                 continue;
             }
-            uint64_t key = ((uint64_t)(bfs_process1[j]) << 32) | (uint64_t)(bfs_process2[k]);
-            // DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
-            //map<uint64_t, uint32_t>::iterator it;
-            if (off_tree_edge_map.count(key) == 1){
-                // DEBUG_PRINT("edge index: %d\n", uint16_t(off_tree_edge_map.find(key)->second));
-                similarity_tree[(uint32_t)(off_tree_edge_map.find(key)->second)] = 1;
-                // DEBUG_PRINT("hash_edges: node %x, %x, %d\n", uint32_t(bfs_process1[j]), uint32_t(bfs_process2[k]), off_tree_edge_map.find(key)->second);
-            } 
+            int u = bfs_process1[j]-1;
+            int v = bfs_process2[k]-1;
+            if(G_adja[u].count(v)==1){
+               similar_list[tid].push_back(G_adja[u].find(v)->second);
+            }
         }
     }
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                         vector<int> &similar_list, map<uint64_t, uint32_t> &off_tree_edge_map){
-    //mark the edge that is similar to the edge which wants to be added
-    int point_pair=0;
-    int hit_num=0;
-    int avail_hit=0;
-
-    int hit_cut_num=0;
-    int avail_cut_hit=0;
-
-    int hit_next_num=0;
-    int avail_next_hit=0;
+                         vector<int> &similar_list, vector<map<int, int>> &G_adja){
     for (int j=0; j<bfs_process1.size(); j++) {
         if (bfs_process1[j]==0) {
             continue;
@@ -150,15 +86,11 @@ void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bf
             if (bfs_process1[j]==bfs_process2[k]) {
                 continue;
             }
-            point_pair++;
-            uint64_t key = ((uint64_t)(bfs_process1[j]) << 32) | (uint64_t)(bfs_process2[k]);
-            // DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
-            //map<uint64_t, uint32_t>::iterator it;
-            if (off_tree_edge_map.count(key) == 1){
-                // DEBUG_PRINT("edge index: %d\n", uint16_t(off_tree_edge_map.find(key)->second));
-                similar_list.push_back(off_tree_edge_map.find(key)->second);
-                // DEBUG_PRINT("hash_edges: node %x, %x, %d\n", uint32_t(bfs_process1[j]), uint32_t(bfs_process2[k]), off_tree_edge_map.find(key)->second);
-            } 
+            int u = bfs_process1[j]-1;
+            int v = bfs_process2[k]-1;
+            if(G_adja[u].count(v)==1){
+               similar_list.push_back(G_adja[u].find(v)->second);
+            }
         }
     }
 }
@@ -179,7 +111,7 @@ int get_task_pool_size(int total_num){
     for(; i < total_num; i++){
         int avail_block_num = i * avail_percent;
         int loop_num = total_num / avail_block_num;
-        if((loop_num+1) * avail_block_num - total_num < offset){
+        if(i%2==0 && (loop_num+1) * avail_block_num - total_num < OFFSET){ //粗粒度MPI的原因，要是偶数
             break;
         }
     }
