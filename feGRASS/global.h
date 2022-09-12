@@ -32,7 +32,7 @@
 // #define task_pool_size 512           //变成由M L 确定的全局变量
 #define avail_percent 0.92
 #define search_block_size_start 512
-#define offset 10
+#define OFFSET 10
 
 #define cut_similarity_range 3
 
@@ -103,5 +103,6 @@ int get_task_pool_size(int total_num);
 
 void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree);
 bool compare(const edge_t &a, const edge_t &b);
-
+int cmp(const void *a, const void *b);
+#include "p_mergesort.hpp"
 #endif

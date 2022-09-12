@@ -4,6 +4,10 @@ bool compare(const edge_t &a,const edge_t &b){
     return a.eff_w > b.eff_w;
 }
 
+int cmp(const void *a, const void *b) {
+    return ((edge_t *)a)->eff_w < ((edge_t *)b)->eff_w;
+}
+
 //disjoint set union
 class DSU
 {
@@ -53,7 +57,9 @@ void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree){
     gettimeofday(&startTime, NULL);                                                                         \
     int M = edge_matrix.size();
     //sort according to the weight of each edge
-    __gnu_parallel::stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
+    // stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
+    // __gnu_parallel::stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
+    p_mergesort<edge_t>(edge_matrix, 32, cmp);
     printTime("kruscal: Sort G edge")
 
     // //run kruscal to get largest-effect-weight spanning tree

@@ -244,7 +244,8 @@ int main(int argc, const char *argv[]) {
 
     // sort by effect resistance
     vector<edge_t>().swap(off_tree_edge);
-    __gnu_parallel::stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
+    // __gnu_parallel::stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
+    p_mergesort(copy_off_tree_edge, 32, cmp);
     // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
 
     before_loop_subTime[5] = saveSubTime(startTime);
