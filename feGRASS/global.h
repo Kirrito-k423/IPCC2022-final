@@ -116,7 +116,7 @@ bool compare(const edge_t &a, const edge_t &b);
 int cmp(const void *a, const void *b);
 #include "p_mergesort.hpp"
 void fg_MPI_synchronization(vector<vector<int>> &syn_vector_list, int *similarity_tree);
-int* MPI_synchronization(int *vector_size_list, int *vector_displs_list,int vector_start, int vector_end, vector<vector<int>> &syn_vector_list);
+int* MPI_synchronization(int *vector_size_list, int *vector_displs_list,int MPI_size, vector<vector<int>> &syn_vector_list);
  
 
 #endif

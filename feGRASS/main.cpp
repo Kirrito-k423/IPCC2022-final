@@ -392,7 +392,11 @@ int main(int argc, char *argv[]) {
     int task_pool_size = get_task_pool_size(max_num_additive_tree - first_num_additive_tree);
     DEBUG_PRINT("task_pool_size %d\n", task_pool_size);
     int task_list[task_pool_size]; //
-    vector<vector<int>> similar_list(task_pool_size);
+    int MPI_start = mpi_rank * task_pool_size / comm_size;
+    int MPI_end = (mpi_rank+1) * task_pool_size / comm_size;
+    int MPI_size = MPI_end-MPI_start;
+    MPI_DEBUG_PRINT("mpi_rank %d\t start end %d\t%d\n",mpi_rank,MPI_start,MPI_end);
+    vector<vector<int>> similar_list(MPI_size);
 
     // debug 打印并行有效命中率
     int avail_task_num = 0; //所有块内有效的边数之和
@@ -421,10 +425,7 @@ int main(int argc, char *argv[]) {
 
         // 并行获得每条off-tree边的相似边列表
         similar_list.clear();
-        similar_list.resize(task_pool_size);
-        int MPI_start = mpi_rank * task_pool_size / comm_size;
-        int MPI_end = (mpi_rank+1) * task_pool_size / comm_size;
-        MPI_DEBUG_PRINT("mpi_rank %d\t start end %d\t%d\n",mpi_rank,MPI_start,MPI_end);
+        similar_list.resize(MPI_size);
 #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic)
         for (i = MPI_start; i < MPI_end; i++) {
             int edge_point1 = int(copy_off_tree_edge[task_list[i]].u);
@@ -442,7 +443,7 @@ int main(int argc, char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja);
+            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i-MPI_start], G_adja);
         }
 
         gettimeofday(&endTime, NULL);
@@ -453,7 +454,7 @@ int main(int argc, char *argv[]) {
 
         int *vector_size_list = (int *)malloc(task_pool_size * sizeof(int));
         int *vector_displs_list = (int *)malloc(task_pool_size * sizeof(int));
-        int *recv_buf = MPI_synchronization(vector_size_list, vector_displs_list, MPI_start, MPI_end, similar_list);
+        int *recv_buf = MPI_synchronization(vector_size_list, vector_displs_list, MPI_size, similar_list);
 
         gettimeofday(&endTime, NULL);
         tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;

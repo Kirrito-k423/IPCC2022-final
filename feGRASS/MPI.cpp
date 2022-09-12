@@ -54,12 +54,12 @@ void fg_MPI_synchronization(vector<vector<int>> &syn_vector_list, int *similarit
     free(recv_buf);
 }
 
-int* MPI_synchronization(int *vector_size_list, int *vector_displs_list,int vector_start, int vector_end, vector<vector<int>> &syn_vector_list){
+int* MPI_synchronization(int *vector_size_list, int *vector_displs_list,int MPI_size, vector<vector<int>> &syn_vector_list){
     //统计各自要发送的数据个数
     int total_send_num = 0;
-    int vector_num_sendbuf_size = (vector_end - vector_start);
+    int vector_num_sendbuf_size = MPI_size;
     int *vector_num_sendbuf = (int *)malloc(vector_num_sendbuf_size * sizeof(int));
-    for (int i = 0,k = vector_start; k < vector_end; k++) {
+    for (int i = 0,k = 0; k < MPI_size; k++) {
         vector_num_sendbuf[i++] = syn_vector_list[k].size();
         total_send_num += syn_vector_list[k].size();
     }
@@ -94,7 +94,7 @@ int* MPI_synchronization(int *vector_size_list, int *vector_displs_list,int vect
     // allgatherv 接受数据
     int *send_buf = (int *)malloc(total_send_num * sizeof(int));
     int *recv_buf = (int *)malloc(All_vector_size * sizeof(int));
-    for (int i = 0,k = vector_start; k < vector_end; k++) {
+    for (int i = 0,k = 0; k < MPI_size; k++) {
         for (int j = 0; j < syn_vector_list[k].size(); j++) {
             send_buf[i++] = syn_vector_list[k][j];
         }
