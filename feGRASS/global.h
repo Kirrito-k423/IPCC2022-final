@@ -28,6 +28,7 @@
 #include <vector>
 
 #define NUM_THREADS 32
+#define KRUSKAL_THREADS 8
 #define first_step_OMP_percentage 0.02 //第一部分OMP的解决边数的占比 case2 3 0.01更快
 // #define task_pool_size 512           //变成由M L 确定的全局变量
 #define avail_percent 0.92
@@ -101,8 +102,10 @@ void print_M1_Array(string name, int *toPrint);
 void printStack(string name, stack<int> toPrint);
 int get_task_pool_size(int total_num);
 
-void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree);
-bool compare(const edge_t &a, const edge_t &b);
 int cmp(const void *a, const void *b);
+
+edge * merge_pair_msf(int vertices, edge *local_edges, int len1, edge *pair_edges, int len2, int *edge_cnt, comparison_fn_t cmp);
+void p_kruskal(int vertices, vector<edge> &edge_matrix, vector<edge> &spanning_tree, int p);
+
 #include "p_mergesort.hpp"
 #endif

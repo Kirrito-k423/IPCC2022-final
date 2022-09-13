@@ -210,7 +210,9 @@ int main(int argc, const char *argv[]) {
 
     // run kruscal to get largest-effect-weight spanning tree
     vector<edge_t> spanning_tree; // spanning tree
-    kruscal(edge_matrix, spanning_tree);
+    spanning_tree.resize(M-1);
+    p_kruskal(M, edge_matrix, spanning_tree, KRUSKAL_THREADS);
+    //kruscal(edge_matrix, spanning_tree);
     before_loop_subTime[2] = saveSubTime(startTime);
     printTime("kruscal total");
 
