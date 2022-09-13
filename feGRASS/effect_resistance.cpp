@@ -162,6 +162,8 @@ void caculate_resistance(vector<edge_t> &spanning_tree, vector<edge_t> &off_tree
     // debug_print_path(1859, 3044, parent, no_weight_dis);
 
     vector<vector<edge_t>> edge_list(NUM_THREADS);
+    // int off_tree_size=off_tree_edge.size();
+    // #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic,off_tree_size/NUM_THREADS/10)
     #pragma omp parallel for num_threads(NUM_THREADS) schedule(static)
     for (int i=0; i<off_tree_edge.size(); i++) {
         const int tid=omp_get_thread_num();
