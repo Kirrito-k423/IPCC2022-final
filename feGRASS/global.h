@@ -14,6 +14,7 @@
 #include <math.h>
 #include <string.h>
 #include <sys/time.h>
+#include <parallel_hashmap/phmap.h>
 
 // #include <algorithm>
 #include <parallel/algorithm>
