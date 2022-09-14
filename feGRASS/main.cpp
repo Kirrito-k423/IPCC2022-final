@@ -218,6 +218,11 @@ int main(int argc, const char *argv[]) {
 
     // construct the off-tree edge
     vector<edge_t> off_tree_edge;
+    // set<edge_t> spanning_tree_set(spanning_tree.begin(), spanning_tree.end());
+    // set<edge_t> edge_matrix_set(edge_matrix.begin(), edge_matrix.end());
+    // set<edge_t> off_tree_set;
+    //set_difference(edge_matrix_set.begin(), edge_matrix_set.end(), spanning_tree_set.begin(), spanning_tree_set.end(), off_tree_set);
+    //off_tree_edge.assign(off_tree_set.begin(), off_tree_set.end());
     p_construct_off_tree(off_tree_edge, spanning_tree, edge_matrix, CONSTRUCT_OFF_TREE_THREADS);
     p_mergesort(edge_matrix, 32, cmp);
     printTime("Sort edge martix cost");

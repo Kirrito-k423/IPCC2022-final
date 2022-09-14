@@ -29,7 +29,7 @@
 
 #define NUM_THREADS 32
 #define KRUSKAL_THREADS 8
-#define CONSTRUCT_OFF_TREE_THREADS 4
+#define CONSTRUCT_OFF_TREE_THREADS 16
 #define first_step_OMP_percentage 0.02 //第一部分OMP的解决边数的占比 case2 3 0.01更快
 // #define task_pool_size 512           //变成由M L 确定的全局变量
 #define avail_percent 0.92
@@ -69,6 +69,27 @@ using namespace std;
 struct edge{
     int u, v;
     double eff_w, w;
+    bool operator>(const edge& e) const noexcept {
+        if(eff_w == e.eff_w){
+            if(v == e.v){
+                return u < e.u;
+            }
+            return v < e.v;
+        }
+        return eff_w > e.eff_w;
+    }
+    bool operator==(const edge& e) const noexcept {
+        return (u==e.u) && (v==e.v) && (eff_w==e.eff_w) && (w==e.w);
+    }
+    bool operator<(const edge& e) const noexcept {
+        if(eff_w == e.eff_w){
+            if(v == e.v){
+                return u > e.u;
+            }
+            return v > e.v;
+        }
+        return eff_w < e.eff_w;
+    }
 };
 typedef struct edge edge_t;
 

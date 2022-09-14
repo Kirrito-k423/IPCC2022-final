@@ -31,6 +31,8 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<edge_t>> &adja_list){
 
 void p_construct_off_tree(vector<edge_t> &off_tree_edge, vector<edge_t> & spanning_tree, vector<edge_t> &edge_matrix, int p){
     std::map<uint64_t, uint8_t> map;
+    struct timeval startTime, endTime;
+    gettimeofday(&startTime, NULL);
     int spanning_tree_size = spanning_tree.size();
     int edge_size = edge_matrix.size();
     int off_tree_size = edge_size - spanning_tree_size;
@@ -38,39 +40,67 @@ void p_construct_off_tree(vector<edge_t> &off_tree_edge, vector<edge_t> & spanni
     int edges_per_process = (edge_size + p - 1) / p; 
     int spanning_tree_edges_per_process = (spanning_tree_size + p - 1) / p; 
     int used_edges = 0;
+    //edge_t **off_tree_ptr_arr = (edge_t**)malloc(p * sizeof(edge_t*));
+    vector<edge_t> **off_tree_ptr_arr = (vector<edge_t>**)malloc(p * sizeof(vector<edge_t>*));
+    for(int i = 0; i < p; i++){
+        off_tree_ptr_arr[i] = new vector<edge_t>;
+    }
+    int *off_tree_num_arr = (int *)malloc(p * sizeof(int));
+    memset(off_tree_num_arr, 0, p * sizeof(int));
     //DEBUG_PRINT("off tree size: %d\n", off_tree_size);
+    for(int i = 0; i < spanning_tree_size; i++){
+        uint64_t key1 = ((uint64_t)(spanning_tree[i].u) << 32) | (uint64_t)(spanning_tree[i].v);
+        //uint64_t key2 = ((uint64_t)(spanning_tree[i].v) << 32) | (uint64_t)(spanning_tree[i].u);
+        //DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
+        //#pragma omp critical
+        {    
+            map[key1] = 1;
+            //map[key2] = 1;
+        }
+    }
+    printTime("\tconstruct map")
     #pragma omp parallel num_threads(p)
     {
         // construct spanning tree edge map parallelly
         int tid = omp_get_thread_num();
-        int spanning_tree_start = tid * spanning_tree_edges_per_process;
-        int spanning_tree_end = (tid+1)*spanning_tree_edges_per_process > spanning_tree_size ? spanning_tree_size : (tid+1)*spanning_tree_edges_per_process;
-        for(int i = spanning_tree_start; i < spanning_tree_end; i++){
-            uint64_t key1 = ((uint64_t)(spanning_tree[i].u) << 32) | (uint64_t)(spanning_tree[i].v);
-            //uint64_t key2 = ((uint64_t)(spanning_tree[i].v) << 32) | (uint64_t)(spanning_tree[i].u);
-            //DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
-            #pragma omp critical
-            {    
-                map[key1] = 1;
-                //map[key2] = 1;
-            }
-        }
-        #pragma omp barrier
         int edge_start = tid * edges_per_process;
         int edge_end = (tid + 1) * edges_per_process > edge_size ? edge_size : (tid+1)*edges_per_process;
+        //off_tree_ptr_arr[tid] = (edge_t *)malloc(sizeof(edge_t) * );
+        //vector<edge_t> thread_edges;
         for(int i = edge_start; i < edge_end; i++){
             uint64_t key1 = ((uint64_t)edge_matrix[i].u << 32) | ((uint64_t)edge_matrix[i].v);
             uint64_t key2 = ((uint64_t)edge_matrix[i].v << 32) | ((uint64_t)edge_matrix[i].u);
-            //DEBUG_PRINT("looking for key: %x, node1: %d, node2: %d, count: %d, used: %d\n", key1, edge_matrix[i].u, edge_matrix[i].v, map.count(key1), used_edges);
+            //DEBUG_PRINT("looking for key: %x, node1: %d, node2: %d, count: %ld, used: %d\n", key1, edge_matrix[i].u, edge_matrix[i].v, map.count(key1), used_edges);
             if(map.count(key1) == 0 && map.count(key2) == 0){
-                #pragma omp critical
-                {
-                    off_tree_edge[used_edges++] = edge_matrix[i];
-                }
+                (*off_tree_ptr_arr[tid]).push_back(edge_matrix[i]);
+                used_edges++;
             }
         }
+        DEBUG_PRINT("processor %d finished finding edges, num: %d, total num: %d\n", tid, (*off_tree_ptr_arr[tid]).size(), used_edges);
+        //off_tree_ptr_arr[tid].resize(thread_edges.size());
+        //memcpy(off_tree_ptr_arr[tid].data(), thread_edges.data(), thread_edges.size() * sizeof(edge_t));
+        off_tree_num_arr[tid] =  (*off_tree_ptr_arr[tid]).size();
+        // #pragma omp barrier
+        // 尝试每个进程分别进行内存拷贝，但是结果错误
+        // int sum = 0;
+        // for(int k = 0; k < tid; k++){
+        //     sum += off_tree_num_arr[tid];
+        // }
+        // memcpy(off_tree_edge.data() + sum, (*off_tree_ptr_arr[tid]).data(), off_tree_num_arr[tid]*sizeof(edge_t));
+        // free(off_tree_ptr_arr[tid]);
     }
-    DEBUG_PRINT("finished\n");
+    printTime("\tfind off tree edges")
+    int sum = 0;
+    for(int i = 0; i < p; i ++){
+        //DEBUG_PRINT("memory copy from processor %d to result\n", i);
+        //DEBUG_PRINT("edge num for processor %d: %d\n", i, off_tree_num_arr[i]);
+        memcpy(off_tree_edge.data() + sum, (*off_tree_ptr_arr[i]).data(), off_tree_num_arr[i]*sizeof(edge_t));
+        sum += off_tree_num_arr[i];
+        free(off_tree_ptr_arr[i]);
+    }
+    printTime("\tmemory copy to result")
+    free(off_tree_num_arr);
+    //DEBUG_PRINT("finished\n");
 }
 
 
