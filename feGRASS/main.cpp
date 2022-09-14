@@ -253,11 +253,15 @@ int main(int argc, const char *argv[]) {
 
     /**
      * 对于每个顶点维护一个hash表，记录了与其连接的非树边。
-     * key为连接的顶点，value为非树边在copy_off_tree_edge中的索引
+     * key为连接的顶点，value为非树边在copy_off_tree_edge中的索引zero_num
      */
     int similarity_tree_length = copy_off_tree_edge.size() / cut_similarity_range; // trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
 
-    vector<map<int, int>> G_adja(M);
+    vector<unordered_map<int, int>> G_adja(M);
+    for (int i = 0; i < M; i++) {
+        G_adja[i].reserve(2 * L/M); //平均L/2/M
+    }
+    printTime("Construct reserve hash map on G");
     for (int i = 0; i < similarity_tree_length; i++) {
         int u = copy_off_tree_edge[i].u - 1;
         int v = copy_off_tree_edge[i].v - 1;
@@ -266,6 +270,27 @@ int main(int argc, const char *argv[]) {
     }
     before_loop_subTime[6] = saveSubTime(startTime);
     printTime("Construct Vertex off-tree hash map on G");
+
+    int not_zero_num=0;
+    int bigger_avg = 0; // > L/M
+    int bigger_avg3 = 0; // > L/M
+
+    for (int i = 0; i < M; i++) {
+        // DEBUG_PRINT("G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
+        if(G_adja[i].size()==0){
+            not_zero_num++;
+        }else if(G_adja[i].size() > L/M){
+            DEBUG_PRINT("G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
+            bigger_avg++;
+        }else if(G_adja[i].size() > 3 * L/M){
+            TIME_PRINT("    G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
+            bigger_avg3++;
+        }
+    }
+    TIME_PRINT("G_adja M %d, not_zero_num %d\t%f%%, bigger_avg %d bigger_avg3 %d\n",M, not_zero_num, 100*(float)not_zero_num/M, bigger_avg, bigger_avg3);
+
+    printTime("Construct DEBUG_PRINT hash map on G");
+
 
     /** 恢复边阶段
      * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数

@@ -47,7 +47,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            int *similarity_tree, vector<map<int, int>> &G_adja){
+                            int *similarity_tree, vector<unordered_map<int, int>> &G_adja){
     //mark the edge that is similar to the edge which wants to be added
 
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
@@ -70,7 +70,7 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                         vector<int> &similar_list, vector<map<int, int>> &G_adja){
+                         vector<int> &similar_list, vector<unordered_map<int, int>> &G_adja){
     for (int j=0; j<bfs_process1.size(); j++) {
         if (bfs_process1[j]==0) {
             continue;
