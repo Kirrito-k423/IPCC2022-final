@@ -267,24 +267,44 @@ int main(int argc, const char *argv[]) {
     before_loop_subTime[6] = saveSubTime(startTime);
     printTime("Construct Vertex off-tree hash map on G");
 
+    // long test_count=0;
+    // for (int i = 0; i < M; i++) {
+    //     // DEBUG_PRINT("G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
+    //     for (int j = 0; j < M; j++) {
+    //         // map<int, int>::iterator tmp =  G_adja[i].find(j);
+    //         // if(tmp!=G_adja[i].end()){
+    //         //    test_count += tmp->second;
+    //         // }
+    //         if(G_adja[i].count(j)==1){
+    //            test_count += G_adja[i].find(j)->second;
+    //         }
+    //     }
+    // }
+    // TIME_PRINT("test_count %ld \n",test_count);
+
+    // printTime("Construct speed of hash map on G");
     
-    int not_zero_num=0;
+    int zero_num=0;
+    const int cur_num = L/M/2 - 1;
     int bigger_avg = 0; // > L/M
     int bigger_avg3 = 0; // > L/M
 
+    bool *filtered_point = (bool *)malloc(M * sizeof(bool));
+    memset(filtered_point, 0,M * sizeof(bool));
     for (int i = 0; i < M; i++) {
         // DEBUG_PRINT("G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
         if(G_adja[i].size()==0){
-            not_zero_num++;
-        }else if(G_adja[i].size() > L/M){
+            zero_num++;
+            filtered_point[i]=1;
+        }else if(G_adja[i].size() > cur_num){
             DEBUG_PRINT("G_adja(%d) %d size %ld\n",i,L/M,G_adja[i].size());
             bigger_avg++;
-        }else if(G_adja[i].size() > 3 * L/M){
+        }else if(G_adja[i].size() > 2 * cur_num){
             TIME_PRINT("    G_adja(%d) %d size %ld\n",i,L/M,G_adja[i].size());
             bigger_avg3++;
         }
     }
-    TIME_PRINT("G_adja M %d, not_zero_num %d\t%f%%, bigger_avg %d bigger_avg3 %d\n",M, not_zero_num, 100*(float)not_zero_num/M, bigger_avg, bigger_avg3);
+    TIME_PRINT("G_adja M %d, zero_num %d\t%f%%, bigger_avg %d bigger_avg3 %d\n",M, zero_num, 100*(float)zero_num/M, bigger_avg, bigger_avg3);
 
     printTime("Construct DEBUG_PRINT hash map on G");
 
@@ -356,7 +376,7 @@ int main(int argc, const char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja);
+            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja, filtered_point);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
@@ -421,7 +441,7 @@ int main(int argc, const char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja);
+            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja, filtered_point);
         }
 
         gettimeofday(&endTime, NULL);
