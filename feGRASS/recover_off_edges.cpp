@@ -46,20 +46,25 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 }
 
 // fine_grained 细粒度
-void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
+void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1_, std::vector<int> &bfs_process2_ ,\
                             int *similarity_tree, vector<map<int, int>> &G_adja){
     //mark the edge that is similar to the edge which wants to be added
-
+    std::vector<int> bfs_process1;
+    bfs_process1.reserve(bfs_process1_.size());
+    std::vector<int> bfs_process2;
+    bfs_process2.reserve(bfs_process2_.size());
+    for (int j=0; j<bfs_process1_.size(); j++) {
+        if(bfs_process1_[j]!=0)
+            bfs_process1.push_back(bfs_process1_[j]);
+    }
+    for (int j=0; j<bfs_process2_.size(); j++) {
+        if(bfs_process2_[j]!=0)
+            bfs_process2.push_back(bfs_process2_[j]);
+    }
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
     #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
     for (int j=0; j<bfs_process1.size(); j++) {
         for (int k=0; k<bfs_process2.size(); k++) {
-            if (bfs_process2[k]==0 ||bfs_process1[j]==0) {
-                continue;
-            }
-            if (bfs_process1[j]==bfs_process2[k]) {
-                continue;
-            }
             int u = bfs_process1[j]-1;
             int v = bfs_process2[k]-1;
             if(G_adja[u].count(v)==1){
@@ -69,19 +74,22 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
     }
 }
 
-void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
+void adjust_similarity_tree(std::vector<int> &bfs_process1_, std::vector<int> &bfs_process2_ ,\
                          vector<int> &similar_list, vector<map<int, int>> &G_adja){
+    std::vector<int> bfs_process1;
+    bfs_process1.reserve(bfs_process1_.size());
+    std::vector<int> bfs_process2;
+    bfs_process2.reserve(bfs_process2_.size());
+    for (int j=0; j<bfs_process1_.size(); j++) {
+        if(bfs_process1_[j]!=0)
+            bfs_process1.push_back(bfs_process1_[j]);
+    }
+    for (int j=0; j<bfs_process2_.size(); j++) {
+        if(bfs_process2_[j]!=0)
+            bfs_process2.push_back(bfs_process2_[j]);
+    }
     for (int j=0; j<bfs_process1.size(); j++) {
-        if (bfs_process1[j]==0) {
-            continue;
-        }
         for (int k=0; k<bfs_process2.size(); k++) {
-            if (bfs_process2[k]==0) {
-                continue;
-            }
-            if (bfs_process1[j]==bfs_process2[k]) {
-                continue;
-            }
             int u = bfs_process1[j]-1;
             int v = bfs_process2[k]-1;
             if(G_adja[u].count(v)==1){
