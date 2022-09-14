@@ -24,6 +24,57 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<edge_t>> &adja_list){
     }
 }
 
+/*
+使用哈希并行地构造生成树边的哈希表
+备注：进程开销过大，在1个进程时最快
+*/
+
+void p_construct_off_tree(vector<edge_t> &off_tree_edge, vector<edge_t> & spanning_tree, vector<edge_t> &edge_matrix, int p){
+    std::map<uint64_t, uint8_t> map;
+    int spanning_tree_size = spanning_tree.size();
+    int edge_size = edge_matrix.size();
+    int off_tree_size = edge_size - spanning_tree_size;
+    off_tree_edge.resize(off_tree_size);
+    int edges_per_process = (edge_size + p - 1) / p; 
+    int spanning_tree_edges_per_process = (spanning_tree_size + p - 1) / p; 
+    int used_edges = 0;
+    //DEBUG_PRINT("off tree size: %d\n", off_tree_size);
+    #pragma omp parallel num_threads(p)
+    {
+        // construct spanning tree edge map parallelly
+        int tid = omp_get_thread_num();
+        int spanning_tree_start = tid * spanning_tree_edges_per_process;
+        int spanning_tree_end = (tid+1)*spanning_tree_edges_per_process > spanning_tree_size ? spanning_tree_size : (tid+1)*spanning_tree_edges_per_process;
+        for(int i = spanning_tree_start; i < spanning_tree_end; i++){
+            uint64_t key1 = ((uint64_t)(spanning_tree[i].u) << 32) | (uint64_t)(spanning_tree[i].v);
+            //uint64_t key2 = ((uint64_t)(spanning_tree[i].v) << 32) | (uint64_t)(spanning_tree[i].u);
+            //DEBUG_PRINT("key1 = %x, key2 = %x\n", key1, key2);
+            #pragma omp critical
+            {    
+                map[key1] = 1;
+                //map[key2] = 1;
+            }
+        }
+        #pragma omp barrier
+        int edge_start = tid * edges_per_process;
+        int edge_end = (tid + 1) * edges_per_process > edge_size ? edge_size : (tid+1)*edges_per_process;
+        for(int i = edge_start; i < edge_end; i++){
+            uint64_t key1 = ((uint64_t)edge_matrix[i].u << 32) | ((uint64_t)edge_matrix[i].v);
+            uint64_t key2 = ((uint64_t)edge_matrix[i].v << 32) | ((uint64_t)edge_matrix[i].u);
+            //DEBUG_PRINT("looking for key: %x, node1: %d, node2: %d, count: %d, used: %d\n", key1, edge_matrix[i].u, edge_matrix[i].v, map.count(key1), used_edges);
+            if(map.count(key1) == 0 && map.count(key2) == 0){
+                #pragma omp critical
+                {
+                    off_tree_edge[used_edges++] = edge_matrix[i];
+                }
+            }
+        }
+    }
+    DEBUG_PRINT("finished\n");
+}
+
+
+
 /**
  * DFS遍历生成树获得：
  * 1. 每个点到根节点的距离

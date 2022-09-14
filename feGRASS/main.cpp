@@ -218,6 +218,9 @@ int main(int argc, const char *argv[]) {
 
     // construct the off-tree edge
     vector<edge_t> off_tree_edge;
+    p_construct_off_tree(off_tree_edge, spanning_tree, edge_matrix, CONSTRUCT_OFF_TREE_THREADS);
+    p_mergesort(edge_matrix, 32, cmp);
+    printTime("Sort edge martix cost");
     int inside = 0; // To show which trees are in the spanning tree
     for (int i = 0; i < edge_matrix.size(); i++) {
         if (edge_matrix[i].u == spanning_tree[inside].u && edge_matrix[i].v == spanning_tree[inside].v) {
@@ -230,6 +233,7 @@ int main(int argc, const char *argv[]) {
         }
         off_tree_edge.push_back(edge_matrix[i]);
     }
+    DEBUG_PRINT("spanning tree size + off tree size: (%d+%d) = %d , %d\n", spanning_tree.size(), off_tree_edge.size(), spanning_tree.size()+off_tree_edge.size(), edge_matrix.size());
     vector<edge_t>().swap(edge_matrix);
 
     before_loop_subTime[3] = saveSubTime(startTime);
@@ -238,7 +242,8 @@ int main(int argc, const char *argv[]) {
     // calculate the resistance of each off_tree edge
     vector<edge_t> copy_off_tree_edge; // to resore the effect resistance
     caculate_resistance(spanning_tree, off_tree_edge, copy_off_tree_edge);
-    // write_edge(spanning_tree, "edge-spanning_tree.log");
+    DEBUG_PRINT("copy off tree size: %d\n", copy_off_tree_edge.size());
+    write_edge(spanning_tree, "edge-spanning_tree.log");
     // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge.log");
 
     before_loop_subTime[4] = saveSubTime(startTime);

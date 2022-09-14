@@ -155,7 +155,7 @@ void p_kruskal(int vertices, vector<edge_t> &edge_matrix, vector<edge_t> &spanni
             || (edge_matrix[i].v >= start_vertices_index && edge_matrix[i].v < end_vertices_index))
             local_edges[used_edges++] = edge_matrix[i];
         }
-        DEBUG_PRINT("tid: %d get local edges\n", tid);
+        //DEBUG_PRINT("tid: %d get local edges\n", tid);
         DSU dsu = DSU(n+1);
         qsort(local_edges, used_edges, sizeof(edge_t), cmp);
         edge_t *local_spanning_tree = (edge_t *) malloc(used_edges * sizeof(edge_t));
@@ -168,7 +168,7 @@ void p_kruskal(int vertices, vector<edge_t> &edge_matrix, vector<edge_t> &spanni
                 dsu.unite(u, v);
             }
         }
-        DEBUG_PRINT("tid: %d find local spanning forest\n", tid);
+        //DEBUG_PRINT("tid: %d find local spanning forest\n", tid);
         free(local_edges);
         msf_edges_num[tid] = sf_edge_cnt;
         msf_edges_ptr[tid] = local_spanning_tree;
@@ -179,7 +179,7 @@ void p_kruskal(int vertices, vector<edge_t> &edge_matrix, vector<edge_t> &spanni
             i <<= 1;
             if (tid % i == 0){
                 // merge
-                DEBUG_PRINT("tid: %d, pair tid: %d, start to merge\n", tid, pair);
+                //DEBUG_PRINT("tid: %d, pair tid: %d, start to merge\n", tid, pair);
                 int merged_edge_cnt = 0;
                 msf_edges_ptr[tid] = merge_pair_msf(vertices, msf_edges_ptr[tid], msf_edges_num[tid], msf_edges_ptr[pair], msf_edges_num[pair], &merged_edge_cnt, cmp);
                 msf_edges_num[tid] = merged_edge_cnt;
