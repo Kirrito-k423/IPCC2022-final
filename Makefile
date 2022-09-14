@@ -6,7 +6,9 @@ LIB = -lgomp
 # C_FLAGS= -fopenmp $(LIB) $(debugFlag)
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) $(debugFlag)
 
-INCLUDEPATH = feGRASS
+INCLUDEPATH = -IfeGRASS -I.
+C_FLAGS += $(INCLUDEPATH)
+
 SRC_DIR = feGRASS
 BUILD_DIR = build/bin
 OBJ_DIR = build/obj

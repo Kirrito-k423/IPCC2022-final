@@ -257,7 +257,7 @@ int main(int argc, const char *argv[]) {
      */
     int similarity_tree_length = copy_off_tree_edge.size() / cut_similarity_range; // trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
 
-    vector<map<int, int>> G_adja(M);
+    vector<phmap::flat_hash_map<int, int>> G_adja(M);
     for (int i = 0; i < similarity_tree_length; i++) {
         int u = copy_off_tree_edge[i].u - 1;
         int v = copy_off_tree_edge[i].v - 1;
