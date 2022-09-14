@@ -268,7 +268,7 @@ int main(int argc, const char *argv[]) {
     //     G_adja[v][u] = i;
     // }
     HASH_SIZE = 3*L/M;
-    DEBUG_PRINT("simple_map %d\n",sizeof(simple_map))
+    DEBUG_PRINT("simple_map %ld\n",sizeof(simple_map));
     simple_map *hash_table = (simple_map *)malloc(M * HASH_SIZE * sizeof(simple_map));
     memset(hash_table, EMPTY, M * HASH_SIZE * sizeof(simple_map));
     for (int i = 0; i < similarity_tree_length; i++) {

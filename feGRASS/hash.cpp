@@ -21,10 +21,12 @@ int hash_put(simple_map *hash_table_, int start_offset,unsigned int key, int val
     }
     int cnt=0;
     do{
+		DEBUG_PRINT("hash_put_hit ");
         idx = (idx + 1) % HASH_SIZE;
         if(hash_table[idx].key==EMPTY){
 			hash_table[idx].key = key;
 			hash_table[idx].value = value;
+			DEBUG_PRINT("\n");
             return 1;
         }
         cnt++;
@@ -48,6 +50,7 @@ int hash_get_value(simple_map *hash_table_, int start_offset,unsigned int key){
     }else{
         int cnt=0;
         do{
+			// DEBUG_PRINT("hash_get_hit ");
             idx = (idx + 1) % HASH_SIZE;
             if(hash_table[idx].key==key){
                 return hash_table[idx].value;
