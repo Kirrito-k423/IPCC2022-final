@@ -257,9 +257,11 @@ int main(int argc, const char *argv[]) {
      */
     int similarity_tree_length = copy_off_tree_edge.size() / cut_similarity_range; // trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
 
-    vector<unordered_map<int, int>> G_adja(M);
+
+    vector<unordered_map<int, int, custom_hash>> G_adja(M);
     for (int i = 0; i < M; i++) {
-        G_adja[i].reserve(2 * L/M); //平均L/2/M
+        G_adja[i].reserve(5 * L/M); //平均L/2/M
+        G_adja[i].max_load_factor(0.25);
     }
     printTime("Construct reserve hash map on G");
     for (int i = 0; i < similarity_tree_length; i++) {

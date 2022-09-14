@@ -26,6 +26,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include<bits/stdc++.h>
 
 #define NUM_THREADS 32
 #define first_step_OMP_percentage 0.02 //第一部分OMP的解决边数的占比 case2 3 0.01更快
@@ -64,6 +65,23 @@ using namespace std;
 #define OMP_TIME_PRINT(fmt, args...)
 #endif
 
+// struct custom_hash {
+//         static int splitmix64(int x) {
+//             // http://xorshift.di.unimi.it/splitmix64.c
+//             x += 0x9e3779b9;
+//             x = (x ^ (x >> 16)) * 0xbf58476d;
+//             x = (x ^ (x >> 14)) * 0x94d049bb;
+//             return x ^ (x >> 15);
+//         }
+
+//         size_t operator()(int x) const {
+//             // static const int FIXED_RANDOM = chrono::steady_clock::now().time_since_epoch().count();
+//             // return splitmix64(x + FIXED_RANDOM);
+//             return x%23;
+//         }
+// };
+#define custom_hash std::hash<int>
+
 struct edge{
     int u, v;
     double eff_w, w;
@@ -85,10 +103,10 @@ extern int *no_weight_dis;
 int calculate_beta(int i, int j);
 void beta_BFS(int beta, std::vector<int> &queue, int root);
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                            vector<int> &similar_list, vector<unordered_map<int, int>> &G_adja);
+                            vector<int> &similar_list, vector<unordered_map<int, int, custom_hash>> &G_adja);
 
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                               int *similarity_tree, vector<unordered_map<int, int>> &G_adja);
+                               int *similarity_tree, vector<unordered_map<int, int, custom_hash>> &G_adja);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int *similarity_tree, int *thread_similarity_tree_address);
 
