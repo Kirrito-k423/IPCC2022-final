@@ -273,6 +273,22 @@ int main(int argc, const char *argv[]) {
     before_loop_subTime[6] = saveSubTime(startTime);
     printTime("Construct Vertex off-tree hash map on G");
 
+    // long test_count=0;
+    // for (int i = 0; i < M; i++) {
+    //     // DEBUG_PRINT("G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
+    //     for (int j = 0; j < M; j++) {
+    //         unordered_map<int, int, custom_hash>::iterator tmp =  G_adja[i].find(j);
+    //         if(tmp!=G_adja[i].end()){
+    //            test_count += tmp->second;
+    //         }
+    //         // if(G_adja[i].count(j)==1){
+    //         //    test_count += G_adja[i].find(j)->second;
+    //         // }
+    //     }
+    // }
+    // printTime("Construct speed of hash map on G");
+
+
     int not_zero_num=0;
     int bigger_avg = 0; // > L/M
     int bigger_avg3 = 0; // > L/M
