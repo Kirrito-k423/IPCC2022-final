@@ -38,6 +38,10 @@
 
 #define next_range 128 // DEBUG_PRINT
 
+// #define HASH_SIZE (1<<10)
+#define EMPTY 0    //must every byte be same
+
+
 // using namespace Eigen;
 using namespace std;
 
@@ -70,11 +74,17 @@ struct edge{
 };
 typedef struct edge edge_t;
 
+struct simpleMap{
+    int key, value;
+};
+typedef struct simpleMap simple_map;
+
 // global value
 extern int M;
 extern int N;
 extern int L;
 extern int largest_volume_point;
+extern int HASH_SIZE;
 
 extern vector<vector<edge_t>> adja_list;
 extern double *dis;
@@ -85,10 +95,10 @@ extern int *no_weight_dis;
 int calculate_beta(int i, int j);
 void beta_BFS(int beta, std::vector<int> &queue, int root);
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                            vector<int> &similar_list, vector<map<int, int>> &G_adja, bool *filtered_point);
+                            vector<int> &similar_list, simple_map *hash_table_);
 
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                               int *similarity_tree, vector<map<int, int>> &G_adja, bool *filtered_point);
+                               int *similarity_tree, simple_map *hash_table_);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int *similarity_tree, int *thread_similarity_tree_address);
 
@@ -104,5 +114,19 @@ int get_task_pool_size(int total_num);
 void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree);
 bool compare(const edge_t &a, const edge_t &b);
 int cmp(const void *a, const void *b);
+
+unsigned int _hash(unsigned int x);
+
+/**
+ * 将元素x放入哈希表中，冲突时尝试放入下一个位置。
+ * 成功放入返回1，失败（哈希表满了）返回0
+ */
+int hash_put(simple_map *hash_table_, int start_offset,unsigned int key, int value);
+/**
+ * 判断元素x是否在哈希表中
+ * 在返回value，不在返回0
+ */
+int hash_get_value(simple_map *hash_table_, int start_offset,unsigned int key);
+
 #include "p_mergesort.hpp"
 #endif

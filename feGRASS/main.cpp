@@ -16,6 +16,7 @@ double first_subTime[5] = {0, 0, 0, 0, 0};             // 伪逆， 循环总时
 double subTime[5] = {0, 0, 0, 0, 0};                   // 伪逆， 循环总时间， 循环内三部分时间
 
 int task_pool_size;
+int HASH_SIZE;
 
 double saveSubTime(struct timeval startTime) {
     struct timeval tmp_end_time;
@@ -98,6 +99,8 @@ int main(int argc, const char *argv[]) {
     int m, n = 0;
     double data = 0;
     int n1 = 1;
+
+    
     for (int i = 0; i < L; ++i) {
         fin >> m >> n >> data;
         // check wether change the column
@@ -257,12 +260,22 @@ int main(int argc, const char *argv[]) {
      */
     int similarity_tree_length = copy_off_tree_edge.size() / cut_similarity_range; // trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
 
-    vector<map<int, int>> G_adja(M);
+    // vector<map<int, int>> G_adja(M);
+    // for (int i = 0; i < similarity_tree_length; i++) {
+    //     int u = copy_off_tree_edge[i].u - 1;
+    //     int v = copy_off_tree_edge[i].v - 1;
+    //     G_adja[u][v] = i;
+    //     G_adja[v][u] = i;
+    // }
+    HASH_SIZE = 3*L/M;
+    DEBUG_PRINT("simple_map %d\n",sizeof(simple_map))
+    simple_map *hash_table = (simple_map *)malloc(M * HASH_SIZE * sizeof(simple_map));
+    memset(hash_table, EMPTY, M * HASH_SIZE * sizeof(simple_map));
     for (int i = 0; i < similarity_tree_length; i++) {
         int u = copy_off_tree_edge[i].u - 1;
         int v = copy_off_tree_edge[i].v - 1;
-        G_adja[u][v] = i;
-        G_adja[v][u] = i;
+        hash_put(hash_table, v, u, i);
+        hash_put(hash_table, u, v, i);
     }
     before_loop_subTime[6] = saveSubTime(startTime);
     printTime("Construct Vertex off-tree hash map on G");
@@ -284,29 +297,29 @@ int main(int argc, const char *argv[]) {
 
     // printTime("Construct speed of hash map on G");
     
-    int zero_num=0;
-    const int cur_num = L/M/2 - 1;
-    int bigger_avg = 0; // > L/M
-    int bigger_avg3 = 0; // > L/M
+    // int zero_num=0;
+    // const int cur_num = L/M/2 - 1;
+    // int bigger_avg = 0; // > L/M
+    // int bigger_avg3 = 0; // > L/M
 
-    bool *filtered_point = (bool *)malloc(M * sizeof(bool));
-    memset(filtered_point, 0,M * sizeof(bool));
-    for (int i = 0; i < M; i++) {
-        // DEBUG_PRINT("G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
-        if(G_adja[i].size()==0){
-            zero_num++;
-            filtered_point[i]=1;
-        }else if(G_adja[i].size() > cur_num){
-            DEBUG_PRINT("G_adja(%d) %d size %ld\n",i,L/M,G_adja[i].size());
-            bigger_avg++;
-        }else if(G_adja[i].size() > 2 * cur_num){
-            TIME_PRINT("    G_adja(%d) %d size %ld\n",i,L/M,G_adja[i].size());
-            bigger_avg3++;
-        }
-    }
-    TIME_PRINT("G_adja M %d, zero_num %d\t%f%%, bigger_avg %d bigger_avg3 %d\n",M, zero_num, 100*(float)zero_num/M, bigger_avg, bigger_avg3);
+    // bool *filtered_point = (bool *)malloc(M * sizeof(bool));
+    // memset(filtered_point, 0,M * sizeof(bool));
+    // for (int i = 0; i < M; i++) {
+    //     // DEBUG_PRINT("G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
+    //     if(G_adja[i].size()==0){
+    //         zero_num++;
+    //         filtered_point[i]=1;
+    //     }else if(G_adja[i].size() > cur_num){
+    //         DEBUG_PRINT("G_adja(%d) %d size %ld\n",i,L/M,G_adja[i].size());
+    //         bigger_avg++;
+    //     }else if(G_adja[i].size() > 2 * cur_num){
+    //         TIME_PRINT("    G_adja(%d) %d size %ld\n",i,L/M,G_adja[i].size());
+    //         bigger_avg3++;
+    //     }
+    // }
+    // TIME_PRINT("G_adja M %d, zero_num %d\t%f%%, bigger_avg %d bigger_avg3 %d\n",M, zero_num, 100*(float)zero_num/M, bigger_avg, bigger_avg3);
 
-    printTime("Construct DEBUG_PRINT hash map on G");
+    // printTime("Construct DEBUG_PRINT hash map on G");
 
     /** 恢复边阶段
      * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数
@@ -376,7 +389,7 @@ int main(int argc, const char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja, filtered_point);
+            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, hash_table);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
@@ -441,7 +454,7 @@ int main(int argc, const char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja, filtered_point);
+            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], hash_table);
         }
 
         gettimeofday(&endTime, NULL);
