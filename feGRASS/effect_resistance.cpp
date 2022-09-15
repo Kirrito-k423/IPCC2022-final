@@ -241,31 +241,40 @@ void caculate_resistance(vector<edge_t> &spanning_tree, vector<edge_t> &off_tree
     
     // printf("path: \n");
     // debug_print_path(1859, 3044, parent, no_weight_dis);
-
-    vector<vector<edge_t>> edge_list(NUM_THREADS);
-    #pragma omp parallel for num_threads(NUM_THREADS) schedule(static)
-    for (int i=0; i<off_tree_edge.size(); i++) {
-        const int tid=omp_get_thread_num();
-        edge_t edge = off_tree_edge[i];
-        int edge_point1 = edge.u-1;
-        int edge_point2 = edge.v-1;
-        //树上计算等效电阻简单方式
-        int LCA_point = get_LCA(edge_point1, edge_point2, parent, no_weight_dis);
-        // printf("LCA(%d, %d)=%d\n", edge_point1, edge_point2, LCA_point);
-        // int d_ = no_weight_dis[edge_point1] + no_weight_dis[edge_point2] - 2*no_weight_dis[LCA_point];
-        // printf("no_weight_dis(%d, %d)=%d\n", edge_point1, edge_point2, d_);
-        double eff_resist = dis[edge_point1] + dis[edge_point2] - 2*dis[LCA_point];
-        edge.eff_w = eff_resist * edge.w;
-        edge_list[tid].push_back(edge);
+    
+    int n = off_tree_edge.size();
+    const int p = NUM_THREADS;
+    int blk_size[p];
+    int offset[p + 1];
+    memset(offset, 0, sizeof(offset));
+    offset[p] = n;
+    for (int i = 0; i < p; i++) {
+        blk_size[i] = n / p;
+        if (i < n % p) { // r*(q+1) + (p-r)*q
+            blk_size[i] += 1;
+        }
     }
+    copy_off_tree_edge.resize(n);
+    #pragma omp parallel num_threads(p)
+    {
+        const int tid=omp_get_thread_num();
 
-    int size=0;
-    copy_off_tree_edge.resize(off_tree_edge.size());
-    edge_t *dst = copy_off_tree_edge.data();
-    for(int i=0; i<NUM_THREADS; i++){
-        int len = edge_list[i].size();
-        mempcpy(dst+size, edge_list[i].data(), len*sizeof(edge_t));
-        size += len;
+        for (int i = 0; i < tid; i++) {
+            offset[tid] += blk_size[i];
+        }
+        for (int i=offset[tid]; i<offset[tid] + blk_size[tid]; i++) {
+            edge_t edge = off_tree_edge[i];
+            int edge_point1 = edge.u-1;
+            int edge_point2 = edge.v-1;
+            //树上计算等效电阻简单方式
+            int LCA_point = get_LCA(edge_point1, edge_point2, parent, no_weight_dis);
+            // printf("LCA(%d, %d)=%d\n", edge_point1, edge_point2, LCA_point);
+            // int d_ = no_weight_dis[edge_point1] + no_weight_dis[edge_point2] - 2*no_weight_dis[LCA_point];
+            // printf("no_weight_dis(%d, %d)=%d\n", edge_point1, edge_point2, d_);
+            double eff_resist = dis[edge_point1] + dis[edge_point2] - 2*dis[LCA_point];
+            edge.eff_w = eff_resist * edge.w;
+            copy_off_tree_edge[i] = edge;
+        }
     }
     printTime("resistance: E-V+1(off-tree) get_LCA")
 }
