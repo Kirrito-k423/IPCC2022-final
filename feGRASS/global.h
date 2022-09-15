@@ -15,6 +15,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <parallel_hashmap/phmap.h>
+#include <parallel_hashmap/btree.h>
 
 // #include <algorithm>
 #include <parallel/algorithm>
@@ -86,10 +87,10 @@ extern int *no_weight_dis;
 int calculate_beta(int i, int j);
 void beta_BFS(int beta, std::vector<int> &queue, int root);
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                            vector<int> &similar_list, vector<phmap::flat_hash_map<int, int>> &G_adja);
+                            vector<int> &similar_list, vector<phmap::btree_map<int, int>> &G_adja);
 
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                               int *similarity_tree, vector<phmap::flat_hash_map<int, int>> &G_adja);
+                               int *similarity_tree, vector<phmap::btree_map<int, int>> &G_adja);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int *similarity_tree, int *thread_similarity_tree_address);
 
