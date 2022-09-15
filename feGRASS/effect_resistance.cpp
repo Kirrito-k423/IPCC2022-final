@@ -30,7 +30,8 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<edge_t>> &adja_list){
 */
 
 void p_construct_off_tree(vector<edge_t> &off_tree_edge, vector<edge_t> & spanning_tree, vector<edge_t> &edge_matrix, int p){
-    std::map<uint64_t, uint8_t> map;
+    phmap::flat_hash_map<uint64_t, uint8_t> map;
+    //std::map<uint64_t, uint8_t> map;
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
     int spanning_tree_size = spanning_tree.size();
