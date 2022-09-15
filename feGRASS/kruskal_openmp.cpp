@@ -4,49 +4,6 @@ int cmp(const void *a, const void *b) {
     return ((edge_t *)a)->eff_w < ((edge_t *)b)->eff_w;
 }
 
-//disjoint set union
-class DSU
-{
-private:
-    int size;
-    int *parent;
-    int *rank;
-public:
-    DSU(int size): size(size){
-        parent = new int[size];
-        rank = new int[size];
-        for(int i=0; i<size; i++){
-            parent[i] = i;
-            rank[i] = 0;
-        }
-    }
-    ~DSU(){
-        delete []parent;
-        delete []rank;
-    }
-    int find_root(int id) {
-        while (id != parent[id]) {
-            id = parent[id];
-        }
-
-        return id;
-    }
-
-    bool same_set(int id1, int id2) {
-        return find_root(id1) == find_root(id2);
-    }
-
-    void unite(int id1, int id2) {
-        id1 = find_root(id1);
-        id2 = find_root(id2);
-
-        if (rank[id1] < rank[id2]) std::swap(id1, id2);
-
-        parent[id2] = id1;
-        if (rank[id1] == rank[id2]) ++rank[id1];
-    }
-};
-
 
 edge * merge_pair_msf(int vertices, edge *local_edges, int len1, edge *pair_edges, int len2, int *edge_cnt, comparison_fn_t cmp){
     DSU dsu = DSU(vertices+1);

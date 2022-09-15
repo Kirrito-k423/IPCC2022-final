@@ -224,20 +224,20 @@ int main(int argc, const char *argv[]) {
     //set_difference(edge_matrix_set.begin(), edge_matrix_set.end(), spanning_tree_set.begin(), spanning_tree_set.end(), off_tree_set);
     //off_tree_edge.assign(off_tree_set.begin(), off_tree_set.end());
     p_construct_off_tree(off_tree_edge, spanning_tree, edge_matrix, CONSTRUCT_OFF_TREE_THREADS);
-    p_mergesort(edge_matrix, 32, cmp);
-    printTime("Sort edge martix cost");
-    int inside = 0; // To show which trees are in the spanning tree
-    for (int i = 0; i < edge_matrix.size(); i++) {
-        if (edge_matrix[i].u == spanning_tree[inside].u && edge_matrix[i].v == spanning_tree[inside].v) {
-            inside++;
-            // to avoid inside crossing the border of spanning_tree
-            if (inside == spanning_tree.size()) {
-                inside--;
-            }
-            continue;
-        }
-        off_tree_edge.push_back(edge_matrix[i]);
-    }
+    //p_mergesort(edge_matrix, 32, cmp);
+    //printTime("Sort edge martix cost");
+    // int inside = 0; // To show which trees are in the spanning tree
+    // for (int i = 0; i < edge_matrix.size(); i++) {
+    //     if (edge_matrix[i].u == spanning_tree[inside].u && edge_matrix[i].v == spanning_tree[inside].v) {
+    //         inside++;
+    //         // to avoid inside crossing the border of spanning_tree
+    //         if (inside == spanning_tree.size()) {
+    //             inside--;
+    //         }
+    //         continue;
+    //     }
+    //     off_tree_edge.push_back(edge_matrix[i]);
+    // }
     DEBUG_PRINT("spanning tree size + off tree size: (%d+%d) = %d , %d\n", spanning_tree.size(), off_tree_edge.size(), spanning_tree.size()+off_tree_edge.size(), edge_matrix.size());
     vector<edge_t>().swap(edge_matrix);
 
