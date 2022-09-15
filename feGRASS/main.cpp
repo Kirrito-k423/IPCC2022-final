@@ -146,9 +146,8 @@ int main(int argc, const char *argv[]) {
 
     // run bfs to get the no-weight distance between normal point with the largest-volume point
     int * no_weight_distance = (int * )malloc((M + 1)*sizeof(int)); // no-weight-distance between largest-volume point and normal point
-    for (int i = 0; i < M + 1; i++) {
-        no_weight_distance[i] = 0;
-    }
+    memset(no_weight_distance, 0, (M+1)*sizeof(int));
+    printTime("init no_weight_distance")
     queue<int> process; // to show the process of bfs
     // run bfs and calculate the no-weight distance
     int distance = 1;
