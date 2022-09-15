@@ -67,6 +67,15 @@ using namespace std;
 struct edge{
     int u, v;
     double eff_w, w;
+    bool operator>(const edge& e) const noexcept {
+        if(eff_w == e.eff_w){
+            if(v == e.v){
+                return u < e.u;
+            }
+            return v < e.v;
+        }
+        return eff_w > e.eff_w;
+    }
 };
 typedef struct edge edge_t;
 
@@ -105,4 +114,5 @@ void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree);
 bool compare(const edge_t &a, const edge_t &b);
 int cmp(const void *a, const void *b);
 #include "p_mergesort.hpp"
+#include "mergeSortMT.hpp"
 #endif

@@ -245,11 +245,15 @@ int main(int argc, const char *argv[]) {
     vector<edge_t>().swap(off_tree_edge);
     // __gnu_parallel::stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
     p_mergesort(copy_off_tree_edge, 32, cmp);
+    // edge_t *tmp_off_tree = (edge_t*) malloc(sizeof(edge_t) * copy_off_tree_edge.size());
+    // memcpy(tmp_off_tree, copy_off_tree_edge.data(), sizeof(edge_t)*copy_off_tree_edge.size());
+    // mergeSortMT(tmp_off_tree, copy_off_tree_edge.size(), 4);
     // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
 
     before_loop_subTime[5] = saveSubTime(startTime);
     printTime("Sort off-tree edges");
 
+    //memcpy(copy_off_tree_edge.data(), tmp_off_tree, sizeof(edge_t)*copy_off_tree_edge.size());
     /**
      * 对于每个顶点维护一个hash表，记录了与其连接的非树边。
      * key为连接的顶点，value为非树边在copy_off_tree_edge中的索引
@@ -341,9 +345,14 @@ int main(int argc, const char *argv[]) {
 
             // choose two nodes as root node respectively to run belta bfs
             vector<int> bfs_process1;
-            beta_BFS(beta, bfs_process1, edge_point1);
             vector<int> bfs_process2;
+            // std::thread t1(beta_BFS, beta, std::ref(bfs_process1), std::ref(edge_point1)); // pass by value
+            // std::thread t2(beta_BFS, beta, std::ref(bfs_process2), std::ref(edge_point2)); // pass by value
+            //beta_BFS(beta, bfs_process2, edge_point2);
+            // t1.join();
+            // t2.join();
             beta_BFS(beta, bfs_process2, edge_point2);
+            beta_BFS(beta, bfs_process1, edge_point1);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
