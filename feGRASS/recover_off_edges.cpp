@@ -74,20 +74,37 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1_, std::vect
     }
 }
 
-void adjust_similarity_tree(std::vector<int> &bfs_process1_, std::vector<int> &bfs_process2_ ,\
+void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                          vector<int> &similar_list, vector<map<int, int>> &G_adja){
-    std::vector<int> bfs_process1;
-    bfs_process1.reserve(bfs_process1_.size());
-    std::vector<int> bfs_process2;
-    bfs_process2.reserve(bfs_process2_.size());
-    for (int j=0; j<bfs_process1_.size(); j++) {
-        if(bfs_process1_[j]!=0)
-            bfs_process1.push_back(bfs_process1_[j]);
+    // erase element of value 0
+    vector<int>::iterator it;
+    for(it = bfs_process1.begin(); it != bfs_process1.end();){
+        if(*it==0){
+            it = bfs_process1.erase(it);
+        } else{
+            it++;
+        }
     }
-    for (int j=0; j<bfs_process2_.size(); j++) {
-        if(bfs_process2_[j]!=0)
-            bfs_process2.push_back(bfs_process2_[j]);
+    for(it = bfs_process2.begin(); it != bfs_process2.end();){
+        if(*it==0){
+            it = bfs_process2.erase(it);
+        } else{
+            it++;
+        }
     }
+
+    // std::vector<int> bfs_process1;
+    // bfs_process1.reserve(bfs_process1_.size());
+    // std::vector<int> bfs_process2;
+    // bfs_process2.reserve(bfs_process2_.size());
+    // for (int j=0; j<bfs_process1_.size(); j++) {
+    //     if(bfs_process1_[j]!=0)
+    //         bfs_process1.push_back(bfs_process1_[j]);
+    // }
+    // for (int j=0; j<bfs_process2_.size(); j++) {
+    //     if(bfs_process2_[j]!=0)
+    //         bfs_process2.push_back(bfs_process2_[j]);
+    // }
     for (int j=0; j<bfs_process1.size(); j++) {
         for (int k=0; k<bfs_process2.size(); k++) {
             int u = bfs_process1[j]-1;
