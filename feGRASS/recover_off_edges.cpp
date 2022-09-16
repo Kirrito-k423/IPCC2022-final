@@ -51,7 +51,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            int *similarity_tree, vector<map<int, int>> &G_adja){
+                            int *similarity_tree, vector<map<int, int>> &G_adja, unordered_set<int>  &filter){
     //mark the edge that is similar to the edge which wants to be added
     // std::vector<int> bfs_process1;
     // bfs_process1.reserve(bfs_process1_.size());
@@ -66,10 +66,13 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
     //         bfs_process2.push_back(bfs_process2_[j]);
     // }
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
-    #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
+    #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j=0; j<bfs_process1.size(); j++) {
+        int u = bfs_process1[j]-1;
+        if(filter.count(u)==1){
+            continue;
+        }
         for (int k=0; k<bfs_process2.size(); k++) {
-            int u = bfs_process1[j]-1;
             int v = bfs_process2[k]-1;
             if(G_adja[u].count(v)==1){
                similarity_tree[G_adja[u].find(v)->second] = 1;
@@ -79,7 +82,7 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                         vector<int> &similar_list, vector<map<int, int>> &G_adja){
+                         vector<int> &similar_list, vector<map<int, int>> &G_adja, unordered_set<int> &filter){
     // std::vector<int> bfs_process1;
     // bfs_process1.reserve(bfs_process1_.size());
     // std::vector<int> bfs_process2;
@@ -95,6 +98,9 @@ void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bf
     int tmp=bfs_process1.size();
     for (int j=0; j<tmp; j++) {
         int u = bfs_process1[j]-1;
+        if(filter.count(u)==1){
+            continue;
+        }
         for (int k=0; k<bfs_process2.size(); k++) {
             int v = bfs_process2[k]-1;
             if(G_adja[u].count(v)==1){

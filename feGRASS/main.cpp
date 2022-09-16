@@ -266,7 +266,7 @@ int main(int argc, const char *argv[]) {
     before_loop_subTime[6] = saveSubTime(startTime);
     printTime("Construct Vertex off-tree hash map on G");
 
-    
+    unordered_set<int> filter;
     int not_zero_num=0;
     int bigger_avg = 0; // > L/M
     int bigger_avg3 = 0; // > L/M
@@ -274,6 +274,7 @@ int main(int argc, const char *argv[]) {
     for (int i = 0; i < M; i++) {
         // DEBUG_PRINT("G_adja(%d) %d size %ld, max_load_factor %f \n",i,L/M,G_adja[i].size(),G_adja[i].load_factor());
         if(G_adja[i].size()==0){
+            filter.insert(i);
             not_zero_num++;
         }else if(G_adja[i].size() > L/M){
             DEBUG_PRINT("G_adja(%d) %d size %ld\t",i,L/M,G_adja[i].size());
@@ -285,7 +286,7 @@ int main(int argc, const char *argv[]) {
     }
     TIME_PRINT("G_adja M %d, not_zero_num %d\t%f%%, bigger_avg %d bigger_avg3 %d\n",M, not_zero_num, 100*(float)not_zero_num/M, bigger_avg, bigger_avg3);
 
-    printTime("Construct DEBUG_PRINT hash map on G");
+    printTime("Construct filter hash map on G");
 
     /** 恢复边阶段
      * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数
@@ -355,7 +356,7 @@ int main(int argc, const char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja);
+            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja, filter);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
@@ -420,7 +421,7 @@ int main(int argc, const char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja);
+            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja, filter);
         }
 
         gettimeofday(&endTime, NULL);
