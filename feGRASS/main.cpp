@@ -276,10 +276,10 @@ int main(int argc, const char *argv[]) {
         if(G_adja[i].size()==0){
             not_zero_num++;
         }else if(G_adja[i].size() > L/M){
-            DEBUG_PRINT("G_adja(%d) %d size %ld\n",i,L/M,G_adja[i].size());
+            DEBUG_PRINT("G_adja(%d) %d size %ld\t",i,L/M,G_adja[i].size());
             bigger_avg++;
         }else if(G_adja[i].size() > 3 * L/M){
-            TIME_PRINT("    G_adja(%d) %d size %ld\n",i,L/M,G_adja[i].size());
+            TIME_PRINT("\n   3*G_adja(%d) %d size %ld\t",i,L/M,G_adja[i].size());
             bigger_avg3++;
         }
     }
@@ -352,7 +352,7 @@ int main(int argc, const char *argv[]) {
             gettimeofday(&startTime, NULL);
 
             DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n", i,
-                        bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
+                        bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
             fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja);
@@ -417,7 +417,7 @@ int main(int argc, const char *argv[]) {
             beta_BFS(beta, bfs_process2, edge_point2);
 
             DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n", task_list[i],
-                        bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
+                        bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
             adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja);
