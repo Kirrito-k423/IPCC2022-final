@@ -17,50 +17,54 @@ int calculate_beta(int i, int j){
 
 void beta_BFS(int beta, std::vector<int> &queue, int root){
     queue.push_back(root);
-    //use zero to cut the near layer
-    queue.push_back(0);
     int * mark = (int * )malloc(M * sizeof(int));
     memset(mark, 0, M *sizeof(int));
     mark[root-1]=1;
     int layer=0;
-    for (int j=0;j<M;j++) {
-        if (layer==beta){
-            break;
-        }
-        if (queue[j]==0){
-            queue.push_back(0);
-            layer++;
-        }
-        else{
-            int point = queue[j]-1;
-            for (int i=0; i<adja_list[point].size(); i++) {
-                int search_point = adja_list[point][i].u;
+    int begin = 0;
+    int last = 1;
+    while(layer != beta){
+        int tmp = begin;
+        begin = last;
+        for(int i = tmp; i < last; i++){
+            int point = queue[i]-1;
+            for(int j = 0; j < adja_list[point].size(); j++){
+                int search_point = adja_list[point][j].u;
                 if(mark[search_point]==0){
                     queue.push_back(search_point+1);
                     mark[search_point] = 1;
                 }
             }
         }
+        last = queue.size();
+        layer++;
     }
+    // printf("for root: %d, ", root);
+    // for(int i = 0; i < queue.size(); i++){
+    //     if (queue[i] != 0){
+    //         printf(" %d ", queue[i]);
+    //     }
+    // }
+    // printf("\n");
     free(mark);
 }
 
 // fine_grained 细粒度
-void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1_, std::vector<int> &bfs_process2_ ,\
+void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, vector<map<int, int>> &G_adja){
     //mark the edge that is similar to the edge which wants to be added
-    std::vector<int> bfs_process1;
-    bfs_process1.reserve(bfs_process1_.size());
-    std::vector<int> bfs_process2;
-    bfs_process2.reserve(bfs_process2_.size());
-    for (int j=0; j<bfs_process1_.size(); j++) {
-        if(bfs_process1_[j]!=0)
-            bfs_process1.push_back(bfs_process1_[j]);
-    }
-    for (int j=0; j<bfs_process2_.size(); j++) {
-        if(bfs_process2_[j]!=0)
-            bfs_process2.push_back(bfs_process2_[j]);
-    }
+    // std::vector<int> bfs_process1;
+    // bfs_process1.reserve(bfs_process1_.size());
+    // std::vector<int> bfs_process2;
+    // bfs_process2.reserve(bfs_process2_.size());
+    // for (int j=0; j<bfs_process1_.size(); j++) {
+    //     if(bfs_process1_[j]!=0)
+    //         bfs_process1.push_back(bfs_process1_[j]);
+    // }
+    // for (int j=0; j<bfs_process2_.size(); j++) {
+    //     if(bfs_process2_[j]!=0)
+    //         bfs_process2.push_back(bfs_process2_[j]);
+    // }
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
     #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
     for (int j=0; j<bfs_process1.size(); j++) {
@@ -76,23 +80,6 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1_, std::vect
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                          vector<int> &similar_list, vector<map<int, int>> &G_adja){
-    // erase element of value 0
-    vector<int>::iterator it;
-    for(it = bfs_process1.begin(); it != bfs_process1.end();){
-        if(*it==0){
-            it = bfs_process1.erase(it);
-        } else{
-            it++;
-        }
-    }
-    for(it = bfs_process2.begin(); it != bfs_process2.end();){
-        if(*it==0){
-            it = bfs_process2.erase(it);
-        } else{
-            it++;
-        }
-    }
-
     // std::vector<int> bfs_process1;
     // bfs_process1.reserve(bfs_process1_.size());
     // std::vector<int> bfs_process2;
