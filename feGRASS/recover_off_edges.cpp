@@ -92,9 +92,10 @@ void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bf
     //     if(bfs_process2_[j]!=0)
     //         bfs_process2.push_back(bfs_process2_[j]);
     // }
-    for (int j=0; j<bfs_process1.size(); j++) {
+    int tmp=bfs_process1.size();
+    for (int j=0; j<tmp; j++) {
+        int u = bfs_process1[j]-1;
         for (int k=0; k<bfs_process2.size(); k++) {
-            int u = bfs_process1[j]-1;
             int v = bfs_process2[k]-1;
             if(G_adja[u].count(v)==1){
                similar_list.push_back(G_adja[u].find(v)->second);
