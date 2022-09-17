@@ -51,7 +51,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1_, std::vector<int> &bfs_process2_ ,\
-                            int *similarity_tree, vector<map<int, int>> &G_adja){
+                            int *similarity_tree, vector<vector<std::pair<int, int>>> &G_adja){
     //mark the edge that is similar to the edge which wants to be added
     std::vector<int> bfs_process1;
     bfs_process1.reserve(bfs_process1_.size());
@@ -80,7 +80,7 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1_, std::vect
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1_, std::vector<int> &bfs_process2_ ,\
-                         vector<int> &similar_list, vector<map<int, int>> &G_adja){
+                         vector<int> &similar_list, vector<vector<std::pair<int, int>>> &G_adja){
     std::vector<int> bfs_process1;
     bfs_process1.reserve(bfs_process1_.size());
     std::vector<int> bfs_process2;

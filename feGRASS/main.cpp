@@ -257,15 +257,15 @@ int main(int argc, const char *argv[]) {
      */
     int similarity_tree_length = copy_off_tree_edge.size() / cut_similarity_range; // trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
 
-    vector<map<int, int>> G_adja(M);
+    vector<vector<std::pair<int, int>>> G_adja(M);      //G'(off-tree edge) adja list
     for (int i = 0; i < similarity_tree_length; i++) {
         int u = copy_off_tree_edge[i].u - 1;
         int v = copy_off_tree_edge[i].v - 1;
-        G_adja[u][v] = i;
-        G_adja[v][u] = i;
+        G_adja[u].push_back(std::make_pair(v, i));
+        G_adja[v].push_back(std::make_pair(u, i));
     }
     before_loop_subTime[6] = saveSubTime(startTime);
-    printTime("Construct Vertex off-tree hash map on G");
+    printTime("Construct Vertex adja list on off-tree G");
 
     /** 恢复边阶段
      * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数
