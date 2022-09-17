@@ -105,4 +105,11 @@ void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree);
 bool compare(const edge_t &a, const edge_t &b);
 int cmp(const void *a, const void *b);
 #include "p_mergesort.hpp"
+
+//bloom_filter.h
+void bloom_init(int n);
+void bloom_insert(int u, int v);
+bool bloom_contain(int u, int v);
+void bloom_free();
+void test_bitmap();
 #endif

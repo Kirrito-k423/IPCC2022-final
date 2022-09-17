@@ -61,17 +61,27 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1_, std::vect
         if(bfs_process2_[j]!=0)
             bfs_process2.push_back(bfs_process2_[j]);
     }
-    //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
-    #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
+    long hit, total, p_pos, p_neg;
+    hit = p_pos = p_neg = 0;
+    total = bfs_process1.size()*bfs_process2.size();
+    #pragma omp parallel for num_threads(NUM_THREADS) collapse(2) reduction(+: hit, p_pos, p_neg)
     for (int j=0; j<bfs_process1.size(); j++) {
         for (int k=0; k<bfs_process2.size(); k++) {
             int u = bfs_process1[j]-1;
             int v = bfs_process2[k]-1;
-            if(G_adja[u].count(v)==1){
-               similarity_tree[G_adja[u].find(v)->second] = 1;
+
+            if (bloom_contain(u, v)) {
+                p_pos++;
+                if (G_adja[u].count(v) == 1) {
+                    hit++;
+                    similarity_tree[G_adja[u].find(v)->second] = 1;
+                }
             }
+            p_neg++;
         }
     }
+    DEBUG_PRINT("hit: %ld, total: %ld, rate: %f\n", hit, total, (double)hit/total);
+    DEBUG_PRINT("p_pos: %ld p_neg: %ld p_pos_rate: %f\n", p_pos, p_neg, (double)p_pos/total);
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1_, std::vector<int> &bfs_process2_ ,\

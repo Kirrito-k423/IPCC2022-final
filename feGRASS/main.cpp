@@ -257,15 +257,26 @@ int main(int argc, const char *argv[]) {
      */
     int similarity_tree_length = copy_off_tree_edge.size() / cut_similarity_range; // trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
 
+    /**
+     * bloom filter
+     * 分配n*32位bit，之后插入n个元素，使用1个hash函数
+     * 假阳性率约为0.03
+    */
+    bloom_init(similarity_tree_length);
+
     vector<map<int, int>> G_adja(M);
     for (int i = 0; i < similarity_tree_length; i++) {
         int u = copy_off_tree_edge[i].u - 1;
         int v = copy_off_tree_edge[i].v - 1;
         G_adja[u][v] = i;
         G_adja[v][u] = i;
+        
+        bloom_insert(u, v);
     }
     before_loop_subTime[6] = saveSubTime(startTime);
     printTime("Construct Vertex off-tree hash map on G");
+
+    test_bitmap();
 
     /** 恢复边阶段
      * 将off-tree列表分块，块大小为k*m。k为常数(如100)，m为线程数
