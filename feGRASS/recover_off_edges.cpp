@@ -55,13 +55,16 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<std::pair<int, int>>> &G_adja){
-    p_mergesort<int>(bfs_process2, 32, cmp2);
+    phmap::flat_hash_set<int> set;
+    for(int i=0; i<bfs_process2.size(); i++){
+        set.insert(bfs_process2[i]);
+    }
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j=0; j<bfs_process1.size(); j++) {
         int u = bfs_process1[j]-1;
         for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
             int v = it->first;
-            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
+            if(set.contains(v+1)){
                similarity_tree[it->second] = 1;
             }
         }
@@ -70,12 +73,17 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                          vector<int> &similar_list, vector<vector<std::pair<int, int>>> &G_adja){
-    quick_sort<int>(bfs_process2, cmp2);
+    // quick_sort<int>(bfs_process2, cmp2);
+    phmap::flat_hash_set<int> set;
+    for(int i=0; i<bfs_process2.size(); i++){
+        set.insert(bfs_process2[i]);
+    }
     for (int j=0; j<bfs_process1.size(); j++) {
         int u = bfs_process1[j]-1;
         for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
             int v = it->first;
-            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
+            if(set.contains(v+1)){
+            // if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
                similar_list.push_back(it->second);
             }
         }
