@@ -8,6 +8,10 @@
  */
 #include "global.h"
 
+int cmp2(const void *a, const void *b) {
+    return *((int *)a) > *((int *)b);
+}
+
 int calculate_beta(int i, int j){
     int LCA_point = get_LCA(i-1, j-1, parent, no_weight_dis);
     int d1 = no_weight_dis[i-1] - no_weight_dis[LCA_point];
@@ -61,14 +65,15 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1_, std::vect
         if(bfs_process2_[j]!=0)
             bfs_process2.push_back(bfs_process2_[j]);
     }
+    p_mergesort<int>(bfs_process2, 32, cmp2);
     //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
-    #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
+    #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j=0; j<bfs_process1.size(); j++) {
-        for (int k=0; k<bfs_process2.size(); k++) {
-            int u = bfs_process1[j]-1;
-            int v = bfs_process2[k]-1;
-            if(G_adja[u].count(v)==1){
-               similarity_tree[G_adja[u].find(v)->second] = 1;
+        int u = bfs_process1[j]-1;
+        for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
+            int v = it->first;
+            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
+               similarity_tree[it->second] = 1;
             }
         }
     }
@@ -88,12 +93,13 @@ void adjust_similarity_tree(std::vector<int> &bfs_process1_, std::vector<int> &b
         if(bfs_process2_[j]!=0)
             bfs_process2.push_back(bfs_process2_[j]);
     }
+    quick_sort<int>(bfs_process2, cmp2);
     for (int j=0; j<bfs_process1.size(); j++) {
-        for (int k=0; k<bfs_process2.size(); k++) {
-            int u = bfs_process1[j]-1;
-            int v = bfs_process2[k]-1;
-            if(G_adja[u].count(v)==1){
-               similar_list.push_back(G_adja[u].find(v)->second);
+        int u = bfs_process1[j]-1;
+        for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
+            int v = it->first;
+            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
+               similar_list.push_back(it->second);
             }
         }
     }

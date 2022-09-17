@@ -27,6 +27,10 @@ T *merge(T *arr1, int len1, T *arr2, int len2, comparison_fn_t cmp) {
     return arr;
 }
 
+template <typename T>
+void quick_sort(vector<T> &arr, comparison_fn_t cmp) {
+    qsort(arr.data(), arr.size(), sizeof(T), cmp);
+}
 /**
  * p: 线程数目，必须为2的幂
  */
