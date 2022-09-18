@@ -12,6 +12,10 @@ int cmp2(const void *a, const void *b) {
     return *((int *)a) > *((int *)b);
 }
 
+int cmp3(const void *a, const void *b) {
+    return *((NodeID *)a) > *((NodeID *)b);
+}
+
 int calculate_beta(int i, int j){
     int LCA_point = get_LCA(i-1, j-1, parent, no_weight_dis);
     int d1 = no_weight_dis[i-1] - no_weight_dis[LCA_point];
@@ -102,9 +106,12 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
 void fg_adjust_similarity_tree(int i, SlidingQueue<NodeID> &bfs_process1, SlidingQueue<NodeID> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<std::pair<int, int>>> &G_adja){
     p_mergesort<int>(bfs_process2, 32, cmp2);
+    // qsort(bfs_process2.all_begin(), bfs_process2.all_size(),sizeof(NodeID),cmp3);
     #pragma omp parallel for num_threads(NUM_THREADS)
-    for (NodeID j :bfs_process1) {
-        int u = j-1;
+    for (int j=0; j<bfs_process1.all_size(); j++) {
+        int u = bfs_process1.all_begin()[j]-1;
+    // for (NodeID j :bfs_process1) {//这样写竟然是错误的
+    //     int u = j-1;
         for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
             int v = it->first;
             if(std::binary_search(bfs_process2.all_begin(), bfs_process2.end(), v+1)){  //v+1

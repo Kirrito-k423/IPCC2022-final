@@ -350,9 +350,11 @@ int main(int argc, const char *argv[]) {
             // choose two nodes as root node respectively to run belta bfs
             // vector<int> bfs_process1;
             SlidingQueue<NodeID> bfs_process1(M);
+            // bfs_process1.reset();
             beta_BFS(beta, bfs_process1, edge_point1);
             // vector<int> bfs_process2;
             SlidingQueue<NodeID> bfs_process2(M);
+            // bfs_process2.reset();
             beta_BFS(beta, bfs_process2, edge_point2);
 
             gettimeofday(&endTime, NULL);
@@ -362,10 +364,11 @@ int main(int argc, const char *argv[]) {
             gettimeofday(&startTime, NULL);
 
             DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n", i,
-                        bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size() * (copy_off_tree_edge.size() - i));
+                        bfs_process1.all_size(), bfs_process2.all_size(), bfs_process1.all_size() * bfs_process2.all_size() * (copy_off_tree_edge.size() - i));
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
             fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja);
+
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
