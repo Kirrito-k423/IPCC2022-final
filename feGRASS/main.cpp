@@ -17,6 +17,12 @@ double subTime[5] = {0, 0, 0, 0, 0};                   // 伪逆， 循环总时
 
 int task_pool_size;
 
+void sig_handler(int sig) {
+  std::cerr << "signal received " << sig << std::endl;
+  while (1)
+    ;
+}
+
 double saveSubTime(struct timeval startTime) {
     struct timeval tmp_end_time;
     gettimeofday(&tmp_end_time, NULL);
@@ -66,6 +72,8 @@ void print_time_proportion(double total_time) {
 }
 
 int main(int argc, const char *argv[]) {
+    // in main
+    signal(6, sig_handler);
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
 

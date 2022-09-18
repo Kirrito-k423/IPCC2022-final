@@ -1,8 +1,8 @@
 CC = g++
 MPICC = mpicc
 
-DEFINE = -D _OPENMP -D __GNUC__
-C_FLAGS= -O3 -fopenmp ${DEFINE}
+# DEFINE = -D _OPENMP -D __GNUC__
+C_FLAGS= -fopenmp -g ${DEFINE}
 LIB = -lgomp
 # C_FLAGS= -fopenmp $(LIB) $(debugFlag)
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) $(debugFlag)
@@ -29,7 +29,7 @@ main : $(OBJ)
 	$(CC) $(OBJ) $(LIB) -o $(BUILD_DIR)/main
 
 debugPrint: $(DEBUG_OBJ)
-	$(CC) $(DEBUG_OBJ) $(LIB) -o $(BUILD_DIR)/main
+	$(CC) -g $(DEBUG_OBJ) $(LIB) -o $(BUILD_DIR)/main
 
 timePrint: $(TIME_OBJ)
 	$(CC) $(TIME_OBJ) $(LIB) -o $(BUILD_DIR)/main

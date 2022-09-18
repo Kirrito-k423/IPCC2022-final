@@ -55,21 +55,26 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
     queue.push_back(root);
     queue.slide_window();
+    int * mark = (int * )malloc(M * sizeof(int));
+    memset(mark, 0, M *sizeof(int));
+    mark[root-1]=1;
     int layer=0;
     while(!queue.empty() && layer != beta){
         DEBUG_PRINT("beta_BFS 1 %d %d\n",layer,beta);
-        #pragma omp parallel num_threads(NUM_THREADS)
+        #pragma omp parallel num_threads(1)
         {
             QueueBuffer<NodeID> lqueue(queue);
             #pragma omp for nowait
-            for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
+            for (auto q_iter = queue.begin(); q_iter != queue.end(); q_iter++) {
                 NodeID u = *q_iter;
                 int point = u-1;
                 // for(int j = 0; j < adja_list[point].size(); j++){
                 for (edge_t v :adja_list[point]) {
                     // int search_point = adja_list[point][j].u;
                     int search_point = v.u;
-                    lqueue.push_back(search_point+1);
+                    if(mark[search_point]==0){
+                        lqueue.push_back(search_point+1);
+                    }
                 }
             }
             lqueue.flush();
@@ -78,6 +83,7 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
         queue.slide_window();
         layer++;
     }
+    DEBUG_PRINT("beta_BFS 3\n");
     // printf("for root: %d, ", root);
     // for(int i = 0; i < queue.size(); i++){
     //     if (queue[i] != 0){
@@ -85,6 +91,7 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
     //     }
     // }
     // printf("\n");
+    free(mark);
 }
 
 // fine_grained 细粒度

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-typedef int32_t NodeID;
+typedef int NodeID;
 // typedef CSRGraph<NodeID> Graph;
 /*
 GAP Benchmark Suite

@@ -32,6 +32,7 @@
 #include "timer.h"
 #include "bitmap.h"
 #include "pvector.h"
+#include <signal.h>
 
 #define NUM_THREADS 32
 #define first_step_OMP_percentage 0.02 //第一部分OMP的解决边数的占比 case2 3 0.01更快
