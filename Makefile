@@ -1,12 +1,13 @@
 CC = g++
 MPICC = mpicc
 
-C_FLAGS= -O3 -fopenmp 
+DEFINE = -D _OPENMP -D __GNUC__
+C_FLAGS= -O3 -fopenmp ${DEFINE}
 LIB = -lgomp
 # C_FLAGS= -fopenmp $(LIB) $(debugFlag)
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) $(debugFlag)
 
-INCLUDEPATH = -I./feGRASS -IparallelBFS
+INCLUDEPATH = -I./feGRASS -I./parallelBFS
 SRC_DIR = feGRASS
 BUILD_DIR = build/bin
 OBJ_DIR = build/obj

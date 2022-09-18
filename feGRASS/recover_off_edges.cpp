@@ -57,7 +57,8 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
     queue.slide_window();
     int layer=0;
     while(!queue.empty() && layer != beta){
-        #pragma omp parallel
+        DEBUG_PRINT("beta_BFS 1 %d %d\n",layer,beta);
+        #pragma omp parallel num_threads(NUM_THREADS)
         {
             QueueBuffer<NodeID> lqueue(queue);
             #pragma omp for nowait
@@ -73,6 +74,7 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
             }
             lqueue.flush();
         }
+        DEBUG_PRINT("beta_BFS 2\n");
         queue.slide_window();
         layer++;
     }
