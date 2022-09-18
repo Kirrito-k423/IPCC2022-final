@@ -6,7 +6,7 @@ LIB = -lgomp
 # C_FLAGS= -fopenmp $(LIB) $(debugFlag)
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) $(debugFlag)
 
-INCLUDEPATH = feGRASS
+INCLUDEPATH = -I./feGRASS -IparallelBFS
 SRC_DIR = feGRASS
 BUILD_DIR = build/bin
 OBJ_DIR = build/obj
@@ -43,11 +43,11 @@ timeMpi: $(SRCS)
 	$(MPICC) -DTIME $^ $(C_FLAGS) -o $(BUILD_DIR)/main
 
 ${OBJ_DIR}/%.o: ${SRC_DIR}/%.cpp $(HEADERS)
-	$(CC) $(C_FLAGS) -c $< -o $@ 
+	$(CC) $(C_FLAGS) $(INCLUDEPATH) -c $< -o $@ 
 ${OBJ_DIR}/%_debug.o: ${SRC_DIR}/%.cpp $(HEADERS)
-	$(CC) -DDEBUG -DTIME $(C_FLAGS) -c $< -o $@ 
+	$(CC) -DDEBUG -DTIME $(C_FLAGS) $(INCLUDEPATH) -c $< -o $@ 
 ${OBJ_DIR}/%_time.o: ${SRC_DIR}/%.cpp $(HEADERS)
-	$(CC) -DTIME $(C_FLAGS) -c $< -o $@ 
+	$(CC) -DTIME $(C_FLAGS) $(INCLUDEPATH) -c $< -o $@ 
 
 
 checkdirs: $(BUILD_DIR)

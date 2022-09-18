@@ -7,7 +7,7 @@
 #include <algorithm>
 
 typedef int32_t NodeID;
-typedef CSRGraph<NodeID> Graph;
+// typedef CSRGraph<NodeID> Graph;
 /*
 GAP Benchmark Suite
 Class:  pvector

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "platform_atomics.h"
+#include "platform_atomics.hpp"
 
 
 /*
@@ -72,6 +72,18 @@ class SlidingQueue {
 
   size_t size() const {
     return end() - begin();
+  }
+
+  iterator all_begin() const {
+    return shared;
+  }
+
+  size_t all_size() const {
+    return end() - all_begin();
+  }
+
+  iterator data() const {
+    return shared;
   }
 };
 

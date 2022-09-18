@@ -1,4 +1,4 @@
-#include "platform_atomics.h"
+#include "platform_atomics.hpp"
 #include "pvector.h"
 #include "sliding_queue.h"
 #include "graph.h"

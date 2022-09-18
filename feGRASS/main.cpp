@@ -340,9 +340,11 @@ int main(int argc, const char *argv[]) {
             gettimeofday(&startTime, NULL);
 
             // choose two nodes as root node respectively to run belta bfs
-            vector<int> bfs_process1;
+            // vector<int> bfs_process1;
+            SlidingQueue<NodeID> bfs_process1(M);
             beta_BFS(beta, bfs_process1, edge_point1);
-            vector<int> bfs_process2;
+            // vector<int> bfs_process2;
+            SlidingQueue<NodeID> bfs_process2(M);
             beta_BFS(beta, bfs_process2, edge_point2);
 
             gettimeofday(&endTime, NULL);
