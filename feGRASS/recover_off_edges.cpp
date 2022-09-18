@@ -60,8 +60,8 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
     mark[root-1]=1;
     int layer=0;
     while(!queue.empty() && layer != beta){
-        DEBUG_PRINT("beta_BFS 1 %d %d\n",layer,beta);
-        #pragma omp parallel num_threads(1)
+        DEBUG_PRINT("beta_BFS 1 %d %d\t",layer,beta);
+        #pragma omp parallel num_threads(NUM_THREADS)
         {
             QueueBuffer<NodeID> lqueue(queue);
             #pragma omp for nowait
@@ -72,14 +72,18 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
                 for (edge_t v :adja_list[point]) {
                     // int search_point = adja_list[point][j].u;
                     int search_point = v.u;
-                    if(mark[search_point]==0){
-                        lqueue.push_back(search_point+1);
+                    int curr_mark=mark[search_point];
+                    if(curr_mark==0){
+                        if (compare_and_swap(mark[search_point], curr_mark, 1)) {
+                            lqueue.push_back(search_point+1);
+                        }
+                        // mark[search_point] = 1;
                     }
                 }
             }
             lqueue.flush();
         }
-        DEBUG_PRINT("beta_BFS 2\n");
+        DEBUG_PRINT("beta_BFS 2\t");
         queue.slide_window();
         layer++;
     }

@@ -2,7 +2,7 @@ CC = g++
 MPICC = mpicc
 
 # DEFINE = -D _OPENMP -D __GNUC__
-C_FLAGS= -fopenmp -g ${DEFINE}
+C_FLAGS= -O3 -fopenmp -g ${DEFINE}
 LIB = -lgomp
 # C_FLAGS= -fopenmp $(LIB) $(debugFlag)
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) $(debugFlag)

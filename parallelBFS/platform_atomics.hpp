@@ -23,7 +23,7 @@ Wrappers for compiler intrinsics for atomic memory operations (AMOs)
 
     template<typename T, typename U>
     T fetch_and_add(T &x, U inc) {
-      printf("__sync_fetch_and_add\t");
+      // printf("__sync_fetch_and_add\t");
       return __sync_fetch_and_add(&x, inc);
     }
 
