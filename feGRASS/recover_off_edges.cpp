@@ -8,6 +8,10 @@
  */
 #include "global.h"
 
+int cmp2(const void *a, const void *b) {
+    return *((int *)a) > *((int *)b);
+}
+
 int calculate_beta(int i, int j){
     int LCA_point = get_LCA(i-1, j-1, parent, no_weight_dis);
     int d1 = no_weight_dis[i-1] - no_weight_dis[LCA_point];
@@ -39,72 +43,34 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
         last = queue.size();
         layer++;
     }
-    // printf("for root: %d, ", root);
-    // for(int i = 0; i < queue.size(); i++){
-    //     if (queue[i] != 0){
-    //         printf(" %d ", queue[i]);
-    //     }
-    // }
-    // printf("\n");
     free(mark);
 }
 
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                            int *similarity_tree, vector<map<int, int>> &G_adja, unordered_set<int>  &filter){
-    //mark the edge that is similar to the edge which wants to be added
-    // std::vector<int> bfs_process1;
-    // bfs_process1.reserve(bfs_process1_.size());
-    // std::vector<int> bfs_process2;
-    // bfs_process2.reserve(bfs_process2_.size());
-    // for (int j=0; j<bfs_process1_.size(); j++) {
-    //     if(bfs_process1_[j]!=0)
-    //         bfs_process1.push_back(bfs_process1_[j]);
-    // }
-    // for (int j=0; j<bfs_process2_.size(); j++) {
-    //     if(bfs_process2_[j]!=0)
-    //         bfs_process2.push_back(bfs_process2_[j]);
-    // }
-    //dynamic 会产生 大约60000* 60000 次omp 线程创建开销
+                            int *similarity_tree, vector<vector<std::pair<int, int>>> &G_adja){
+    p_mergesort<int>(bfs_process2, 32, cmp2);
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j=0; j<bfs_process1.size(); j++) {
         int u = bfs_process1[j]-1;
-        if(filter.count(u)==1){
-            continue;
-        }
-        for (int k=0; k<bfs_process2.size(); k++) {
-            int v = bfs_process2[k]-1;
-            if(G_adja[u].count(v)==1){
-               similarity_tree[G_adja[u].find(v)->second] = 1;
+        for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
+            int v = it->first;
+            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
+               similarity_tree[it->second] = 1;
             }
         }
     }
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
-                         vector<int> &similar_list, vector<map<int, int>> &G_adja, unordered_set<int> &filter){
-    // std::vector<int> bfs_process1;
-    // bfs_process1.reserve(bfs_process1_.size());
-    // std::vector<int> bfs_process2;
-    // bfs_process2.reserve(bfs_process2_.size());
-    // for (int j=0; j<bfs_process1_.size(); j++) {
-    //     if(bfs_process1_[j]!=0)
-    //         bfs_process1.push_back(bfs_process1_[j]);
-    // }
-    // for (int j=0; j<bfs_process2_.size(); j++) {
-    //     if(bfs_process2_[j]!=0)
-    //         bfs_process2.push_back(bfs_process2_[j]);
-    // }
-    int tmp=bfs_process1.size();
-    for (int j=0; j<tmp; j++) {
+                         vector<int> &similar_list, vector<vector<std::pair<int, int>>> &G_adja){
+    quick_sort<int>(bfs_process2, cmp2);
+    for (int j=0; j<bfs_process1.size(); j++) {
         int u = bfs_process1[j]-1;
-        if(filter.count(u)==1){
-            continue;
-        }
-        for (int k=0; k<bfs_process2.size(); k++) {
-            int v = bfs_process2[k]-1;
-            if(G_adja[u].count(v)==1){
-               similar_list.push_back(G_adja[u].find(v)->second);
+        for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
+            int v = it->first;
+            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
+               similar_list.push_back(it->second);
             }
         }
     }

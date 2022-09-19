@@ -27,6 +27,10 @@ T *merge(T *arr1, int len1, T *arr2, int len2, comparison_fn_t cmp) {
     return arr;
 }
 
+template <typename T>
+void quick_sort(vector<T> &arr, comparison_fn_t cmp) {
+    qsort(arr.data(), arr.size(), sizeof(T), cmp);
+}
 /**
  * p: 线程数目，必须为2的幂
  */
@@ -39,19 +43,20 @@ void p_mergesort(vector<T> &arr, int p, comparison_fn_t cmp) {
     memset(offset, 0, sizeof(offset));
     offset[p] = n;
     T *arr_[p];
+    for (int i = 0; i < p; i++) {
+        blk_size[i] = n / p;
+        // if(tid==p-1){    //(p-1)*q + q+r
+        //     blk_size[tid] += n % p;
+        // }
+        if (i < n % p) { // r*(q+1) + (p-r)*q
+            blk_size[i] += 1;
+        }
+    }
+    
 #pragma omp parallel num_threads(p)
     {
         int tid = omp_get_thread_num();
 
-        blk_size[tid] = n / p;
-        // if(tid==p-1){    //(p-1)*q + q+r
-        //     blk_size[tid] += n % p;
-        // }
-        if (tid < n % p) { // r*(q+1) + (p-r)*q
-            blk_size[tid] += 1;
-        }
-
-#pragma omp barrier
         for (int i = 0; i < tid; i++) {
             offset[tid] += blk_size[i];
         }

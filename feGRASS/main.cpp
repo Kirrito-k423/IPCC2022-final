@@ -244,7 +244,7 @@ int main(int argc, const char *argv[]) {
     // sort by effect resistance
     vector<edge_t>().swap(off_tree_edge);
     // __gnu_parallel::stable_sort(copy_off_tree_edge.begin(), copy_off_tree_edge.end(), compare);
-    p_mergesort(copy_off_tree_edge, 32, cmp);
+    p_mergesort(copy_off_tree_edge, SORT_THREADS, cmp);
     // write_edge(copy_off_tree_edge, "edge-copy_off_tree_edge-sort.log");
 
     before_loop_subTime[5] = saveSubTime(startTime);
@@ -256,15 +256,15 @@ int main(int argc, const char *argv[]) {
      */
     int similarity_tree_length = copy_off_tree_edge.size() / cut_similarity_range; // trick: 发现只需要考虑off-tree的边的前一部分，如前1/3
 
-    vector<map<int, int>> G_adja(M);
+    vector<vector<std::pair<int, int>>> G_adja(M);      //G'(off-tree edge) adja list
     for (int i = 0; i < similarity_tree_length; i++) {
         int u = copy_off_tree_edge[i].u - 1;
         int v = copy_off_tree_edge[i].v - 1;
-        G_adja[u][v] = i;
-        G_adja[v][u] = i;
+        G_adja[u].push_back(std::make_pair(v, i));
+        G_adja[v].push_back(std::make_pair(u, i));
     }
     before_loop_subTime[6] = saveSubTime(startTime);
-    printTime("Construct Vertex off-tree hash map on G");
+    printTime("Construct Vertex adja list on off-tree G");
 
     unordered_set<int> filter;
     int not_zero_num=0;
@@ -356,7 +356,7 @@ int main(int argc, const char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja, filter);
+            fg_adjust_similarity_tree(i, bfs_process1, bfs_process2, similarity_tree, G_adja);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;
@@ -421,7 +421,7 @@ int main(int argc, const char *argv[]) {
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
 
             // DEBUG_PRINT("start to adjust similarity tree\n");
-            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja, filter);
+            adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja);
         }
 
         gettimeofday(&endTime, NULL);

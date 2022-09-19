@@ -30,6 +30,7 @@
 
 #define NUM_THREADS 32
 #define CREATE_ADJA_THREADS 36  // as large as possible
+#define SORT_THREADS 32
 #define first_step_OMP_percentage 0.02 //第一部分OMP的解决边数的占比 case2 3 0.01更快
 // #define task_pool_size 512           //变成由M L 确定的全局变量
 #define avail_percent 0.92
@@ -89,10 +90,10 @@ extern int *no_weight_dis;
 int calculate_beta(int i, int j);
 void beta_BFS(int beta, std::vector<int> &queue, int root);
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                            vector<int> &similar_list, vector<map<int, int>> &G_adja, unordered_set<int>  &filter);
+                            vector<int> &similar_list, vector<vector<std::pair<int, int>>> &G_adja);
 
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
-                               int *similarity_tree, vector<map<int, int>> &G_adja, unordered_set<int>  &filter);
+                               int *similarity_tree, vector<vector<std::pair<int, int>>> &G_adja);
 void check_next_range_similarity_tree(int i, int *similarity_tree, int total_range);
 void merge_thread_similarity_tree(int i, int similarity_tree_length, int *similarity_tree, int *thread_similarity_tree_address);
 
