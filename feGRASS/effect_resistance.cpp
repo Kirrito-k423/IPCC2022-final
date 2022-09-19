@@ -5,23 +5,62 @@ double *dis;
 int *parent;
 int *no_weight_dis;
 
+int cmp_by_index(const void *a, const void *b) {
+    int u_less = ((edge_t *)a)->u < ((edge_t *)b)->u;
+    int u_equal = ((edge_t *)a)->u == ((edge_t *)b)->u;
+    int v_less = ((edge_t *)a)->v < ((edge_t *)b)->v;
+    return u_equal ? v_less : u_less;
+}
+
+
 /**
  * 根据树的边集表示，创建邻接表
 */
 void create_adja_list(vector<edge_t> &tree, vector<vector<edge_t>> &adja_list){
     // vector<vector<int>> adja_list(N);
-    edge_t edge;    //[point_idx, edge_weight]
     int edge_num = tree.size();
-    for(int i=0; i<edge_num; i++){
-        int p1 = tree[i].u-1;
-        int p2 = tree[i].v-1;
-        // printf("%d %d %f\n", p1, p2, tree[i][3]);
-        edge.u = p2;
-        edge.w = tree[i].w;
-        adja_list[p1].push_back(edge);
-        edge.u = p1;
-        adja_list[p2].push_back(edge);
+    struct timeval startTime, endTime;
+    gettimeofday(&startTime, NULL);
+    int tree_size = tree.size();
+    tree.resize(2 * tree_size);
+    printTime("before memory copy:");
+    // duplicate edges, the back half edges aim to reverted direction
+    memcpy(tree.data() + tree_size, tree.data(), tree_size * sizeof(edge_t));
+    printTime("memory copy time:");
+    int p = 36;
+    #pragma omp parallel num_threads(p)
+    {
+        int tid = omp_get_thread_num();
+        // reverted direction of the back half edges parallelly
+        // int edges_per_processor = (edge_num + p - 1) / p;
+        int edge_start = edge_num + tid * edge_num / p;
+        int edge_end = edge_num + (tid + 1) * edge_num / p;
+        DEBUG_PRINT("tid: %d, revert edges start: %d, end: %d\n", tid, edge_start, edge_end);
+        for(int index = edge_start; index < edge_end; index++){
+            // revert direction
+            int tmp = tree[index].u;
+            tree[index].u = tree[index].v;
+            tree[index].v = tmp;
+        }
+        // traverse the whole edges (with both direction), and append edges to assigned nodes
+        // int node_num = adja_list.size();
+        // int node_per_processor = (node_num + p - 1) / p;
+        int node_start = tid * M / p;
+        int node_end = (tid+1) * M / p;
+        DEBUG_PRINT("tid: %d, construct ajda_list, node start: %d, end: %d\n", tid, node_start, node_end);
+        // suppose to be an omp barrier
+        #pragma omp barrier
+        edge_t edge;    //[point_idx, edge_weight]
+        for(int i=0; i<2*edge_num; i++){
+            int node_index = tree[i].u-1;
+            if(node_index < node_end && node_index >= node_start){
+                edge.u = tree[i].v - 1;
+                edge.w = tree[i].w;
+                adja_list[node_index].push_back(edge);
+            }
+        }
     }
+    tree.resize(tree_size);
 }
 
 /**

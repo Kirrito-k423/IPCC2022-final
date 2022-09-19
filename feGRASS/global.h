@@ -68,6 +68,8 @@ using namespace std;
 struct edge{
     int u, v;
     double eff_w, w;
+    edge(){}
+    edge(int u, int v, double eff_w, double w) :u(u), v(v), eff_w(eff_w), w(w){}
 };
 typedef struct edge edge_t;
 
