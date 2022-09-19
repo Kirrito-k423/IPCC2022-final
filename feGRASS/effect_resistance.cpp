@@ -31,7 +31,7 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list){
         // reverted direction of the back half edges parallelly
         int edge_start = edge_num + tid * edge_num / p;
         int edge_end = edge_num + (tid + 1) * edge_num / p;
-        DEBUG_PRINT("tid: %d, revert edges start: %d, end: %d\n", tid, edge_start, edge_end);
+        // DEBUG_PRINT("tid: %d, revert edges start: %d, end: %d\n", tid, edge_start, edge_end);
         for(int index = edge_start; index < edge_end; index++){
             // revert direction
             int tmp = tree[index].u;
@@ -41,7 +41,7 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list){
         // traverse the whole edges (with both direction), and append edges to assigned nodes
         int node_start = tid * M / p;
         int node_end = (tid+1) * M / p;
-        DEBUG_PRINT("tid: %d, construct ajda_list, node start: %d, end: %d\n", tid, node_start, node_end);
+        // DEBUG_PRINT("tid: %d, construct ajda_list, node start: %d, end: %d\n", tid, node_start, node_end);
         #pragma omp barrier
         node_t node;    //[point_idx, edge_weight]
         for(int i=0; i<2*edge_num; i++){
