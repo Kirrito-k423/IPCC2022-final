@@ -14,6 +14,7 @@ int largest_volume_point;
 double before_loop_subTime[7] = {0, 0, 0, 0, 0, 0, 0}; // 循环前时间,主要是check统计总时间
 double first_subTime[5] = {0, 0, 0, 0, 0};             // 伪逆， 循环总时间， 循环内三部分时间
 double subTime[5] = {0, 0, 0, 0, 0};                   // 伪逆， 循环总时间， 循环内三部分时间
+double cg_omp_time[4] = {0,0,0,0}; // 线程创建开销， beta, 2*BFS, similarity
 
 int task_pool_size;
 
@@ -62,9 +63,29 @@ void print_time_proportion(double total_time) {
     printf("%4.2f%%\n", 100 * subTime[i] / total_time);
     printf("循环12 占比 %.2f%%\n", 100 * (first_subTime[1] + subTime[1]) / total_time);
 
+    printf("\n粗粒度OMP的细节时间\nOMP创建开销\t beta\t\t 2*BFS\t\t similarity\n");
+    length = sizeof(cg_omp_time) / sizeof(cg_omp_time[0]);
+    for (i = 0; i < length - 1; i++) {
+        printf("%8.2f\t", cg_omp_time[i]);
+    }
+    printf("%8.2f\n", cg_omp_time[i]);
+    for (i = 0; i < length - 1; i++) {
+        printf("%4.2f%%\t\t", 100 * cg_omp_time[i] / total_time);
+    }
+    printf("%4.2f%%\n", 100 * cg_omp_time[i] / total_time);
     printf("\n以上总和 占比 %.2f%%\n", 100 * (before_loop_time + first_subTime[1] + subTime[0] + subTime[1]) / total_time);
 }
 
+void omp_time_print(int tid, struct timeval &start, struct timeval &end, int index, bool &flag){
+    if(tid == 0){
+        gettimeofday(&end, NULL);
+        double tmp_past_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0;
+        if(index!=0||flag==1)
+            cg_omp_time[index] += tmp_past_time;
+        DEBUG_PRINT("\ncopy_off_tree_edge omp_detail %d \t took %f ms\n", index, tmp_past_time);
+        flag=0;
+    }
+}
 int main(int argc, const char *argv[]) {
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
@@ -378,6 +399,7 @@ int main(int argc, const char *argv[]) {
     int avail_task_num = 0; //所有块内有效的边数之和
     int total_task_num = 0; //所有块边数之和
 
+    struct timeval omp_before_time, omp_start_time, omp_beta_time, omp_bfs_time, omp_similarity_time; 
     gettimeofday(&loop_begin_time, NULL);
     printTime("first while");
     while (1) {
@@ -402,11 +424,17 @@ int main(int argc, const char *argv[]) {
         // 并行获得每条off-tree边的相似边列表
         similar_list.clear();
         similar_list.resize(task_pool_size);
+        gettimeofday(&omp_before_time, NULL);
+        bool flag = 1;
+
 #pragma omp parallel for num_threads(NUM_THREADS) schedule(dynamic)
         for (i = 0; i < task_pool_size; i++) {
+            int tid = omp_get_thread_num();
+            omp_time_print(tid,omp_before_time,omp_start_time,0,flag);
             int edge_point1 = int(copy_off_tree_edge[task_list[i]].u);
             int edge_point2 = int(copy_off_tree_edge[task_list[i]].v);
             int beta = calculate_beta(edge_point1, edge_point2);
+            omp_time_print(tid,omp_start_time,omp_beta_time,1,flag);
 
             // choose two nodes as root node respectively to run belta bfs
             //  DEBUG_PRINT("start to 2 beta_BFS\n");
@@ -418,8 +446,12 @@ int main(int argc, const char *argv[]) {
             DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n", task_list[i],
                         bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
 
+            omp_time_print(tid,omp_beta_time,omp_bfs_time,2,flag);
+
             // DEBUG_PRINT("start to adjust similarity tree\n");
             adjust_similarity_tree(bfs_process1, bfs_process2, similar_list[i], G_adja);
+            omp_time_print(tid,omp_bfs_time,omp_similarity_time,3,flag);
+
         }
 
         gettimeofday(&endTime, NULL);
