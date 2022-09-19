@@ -29,6 +29,7 @@
 #include <unordered_set>
 
 #define NUM_THREADS 32
+#define CREATE_ADJA_THREADS 36  // as large as possible
 #define first_step_OMP_percentage 0.02 //第一部分OMP的解决边数的占比 case2 3 0.01更快
 // #define task_pool_size 512           //变成由M L 确定的全局变量
 #define avail_percent 0.92
