@@ -1,6 +1,6 @@
 #include "global.h"
 
-vector<vector<edge_t>> adja_list;
+vector<vector<node_t>> adja_list;
 double *dis;
 int *parent;
 int *no_weight_dis;
@@ -16,7 +16,7 @@ int cmp_by_index(const void *a, const void *b) {
 /**
  * 根据树的边集表示，创建邻接表
 */
-void create_adja_list(vector<edge_t> &tree, vector<vector<edge_t>> &adja_list){
+void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list){
     int edge_num = tree.size();
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
@@ -43,13 +43,13 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<edge_t>> &adja_list){
         int node_end = (tid+1) * M / p;
         DEBUG_PRINT("tid: %d, construct ajda_list, node start: %d, end: %d\n", tid, node_start, node_end);
         #pragma omp barrier
-        edge_t edge;    //[point_idx, edge_weight]
+        node_t node;    //[point_idx, edge_weight]
         for(int i=0; i<2*edge_num; i++){
             int node_index = tree[i].u-1;
             if(node_index < node_end && node_index >= node_start){
-                edge.u = tree[i].v - 1;
-                edge.w = tree[i].w;
-                adja_list[node_index].push_back(edge);
+                node.u = tree[i].v - 1;
+                node.w = tree[i].w;
+                adja_list[node_index].push_back(node);
             }
         }
     }
@@ -63,7 +63,7 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<edge_t>> &adja_list){
  * 3. 每个点到根节点的无权重距离
  * 根节点使用largest_volume_point
 */
-void DFS_traversal(vector<vector<edge_t>> &adja_list, double *dis, int *parent, int *no_weight_dis){
+void DFS_traversal(vector<vector<node_t>> &adja_list, double *dis, int *parent, int *no_weight_dis){
     //init distance array
     memset(dis, 0, sizeof(double)*M);
     //init parent array
@@ -99,7 +99,7 @@ void debug_print(double *dis, int *parent, int *no_weight_dis){
     }
 }
 
-void debug_print_adja(vector<vector<edge_t>> &adja_list){
+void debug_print_adja(vector<vector<node_t>> &adja_list){
     printf("adja: \n");
     for(int i=0; i<M; i++){
         printf("%2d: ", i);
