@@ -8,6 +8,12 @@
  */
 #include "global.h"
 
+void fg_time_print(struct timeval &start, struct timeval &end, int index){
+    gettimeofday(&end, NULL);
+    double tmp_past_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0;
+    fg_similarity_time[index] += tmp_past_time;
+    DEBUG_PRINT("\ncopy_off_tree_edge omp_detail %d \t took %f ms\n", index, tmp_past_time);
+}
 int cmp2(const void *a, const void *b) {
     return *((int *)a) > *((int *)b);
 }
@@ -64,10 +70,14 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
     mark[root-1]=1;
     int layer=0;
     while(!queue.empty() && layer != beta){
-        DEBUG_PRINT("beta_BFS 1 %d %d\t",layer,beta);
-        #pragma omp parallel num_threads(NUM_THREADS)
+        if(layer%8==7)
+            DEBUG_PRINT("beta_BFS 1 %d %d size %ld \n ",layer,beta,queue.size());
+        else
+            DEBUG_PRINT("beta_BFS 1 %d %d size %ld \t ",layer,beta,queue.size());
+        int p=4;
+        #pragma omp parallel num_threads(p)
         {
-            QueueBuffer<NodeID> lqueue(queue);
+            QueueBuffer<NodeID> lqueue(queue, 200/p);
             #pragma omp for nowait
             for (auto q_iter = queue.begin(); q_iter != queue.end(); q_iter++) {
                 NodeID u = *q_iter;
@@ -85,9 +95,13 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
                     }
                 }
             }
+            
+            DEBUG_PRINT("bete_BFS OMP %d conflict_times %d \t ", omp_get_thread_num() , lqueue.conflict_times());
+            
+            
             lqueue.flush();
         }
-        DEBUG_PRINT("beta_BFS 2\t");
+        // DEBUG_PRINT("beta_BFS 2\t");
         queue.slide_window();
         layer++;
     }
@@ -105,7 +119,10 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, SlidingQueue<NodeID> &bfs_process1, SlidingQueue<NodeID> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<std::pair<int, int>>> &G_adja){
+    struct timeval start_time, end_time;
+    gettimeofday(&start_time, NULL);
     p_mergesort<int>(bfs_process2, 32, cmp2);
+    fg_time_print(start_time,end_time,0);
     // qsort(bfs_process2.all_begin(), bfs_process2.all_size(),sizeof(NodeID),cmp3);
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j=0; j<bfs_process1.all_size(); j++) {
@@ -119,6 +136,7 @@ void fg_adjust_similarity_tree(int i, SlidingQueue<NodeID> &bfs_process1, Slidin
             }
         }
     }
+    fg_time_print(end_time,start_time,1);
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\

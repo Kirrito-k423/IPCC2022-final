@@ -14,6 +14,8 @@ int largest_volume_point;
 double before_loop_subTime[7] = {0, 0, 0, 0, 0, 0, 0}; // 循环前时间,主要是check统计总时间
 double first_subTime[5] = {0, 0, 0, 0, 0};             // 伪逆， 循环总时间， 循环内三部分时间
 double subTime[5] = {0, 0, 0, 0, 0};                   // 伪逆， 循环总时间， 循环内三部分时间
+double fg_similarity_time[2] = {0, 0};                   // 排序， OMP
+
 
 int task_pool_size;
 
@@ -56,7 +58,18 @@ void print_time_proportion(double total_time) {
     }
     printf("%4.2f%%\n", 100 * first_subTime[i] / total_time);
 
+    printf("\nfg_similarity\n 排序\t\t fg_OMP\n");
+    length = sizeof(fg_similarity_time) / sizeof(fg_similarity_time[0]);
+    for (i = 0; i < length - 1; i++) {
+        printf("%8.2f\t", fg_similarity_time[i]);
+    }
+    printf("%8.2f\n", fg_similarity_time[i]);
+    for (i = 0; i < length - 1; i++) {
+        printf("%4.2f%%\t\t", 100 * fg_similarity_time[i] / total_time);
+    }
+    printf("%4.2f%%\n", 100 * fg_similarity_time[i] / total_time);
     printf("\n循环2总时间\t 任务划分\t OMP\t merge\n");
+
     length = sizeof(subTime) / sizeof(subTime[0]);
     for (i = 1; i < length - 1; i++) {
         printf("%8.2f\t", subTime[i]);

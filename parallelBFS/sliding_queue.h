@@ -91,6 +91,7 @@ class SlidingQueue {
 template <typename T>
 class QueueBuffer {
   size_t in;
+  int flush_time;
   T *local_queue;
   SlidingQueue<T> &sq;
   const size_t local_size;
@@ -99,6 +100,7 @@ class QueueBuffer {
   explicit QueueBuffer(SlidingQueue<T> &master, size_t given_size = 16384)
       : sq(master), local_size(given_size) {
     in = 0;
+    flush_time = 0;
     local_queue = new T[local_size];
   }
 
@@ -113,10 +115,15 @@ class QueueBuffer {
   }
 
   void flush() {
+    flush_time++;
     T *shared_queue = sq.shared;
     size_t copy_start = fetch_and_add(sq.shared_in, in);
     std::copy(local_queue, local_queue+in, shared_queue+copy_start);
     in = 0;
+  }
+
+  int conflict_times(){
+    return flush_time;
   }
 };
 

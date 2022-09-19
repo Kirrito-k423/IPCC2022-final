@@ -87,6 +87,8 @@ extern vector<vector<edge_t>> adja_list;
 extern double *dis;
 extern int *parent;
 extern int *no_weight_dis;
+extern double fg_similarity_time[2];                   // 伪逆， 循环总时间， 循环内三部分时间
+
 
 // recover_off_edges.cpp
 int calculate_beta(int i, int j);
