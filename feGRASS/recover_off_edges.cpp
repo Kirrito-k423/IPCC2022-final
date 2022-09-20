@@ -70,6 +70,13 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
     //任务划分，线程间点的个数相差小于1
     const int n = last - begin;
 
+    // printf("queue<%d>: ", queue.size());
+    // for(int point: queue){
+    //     printf("%d ", point);
+    // }
+    // printf("\n");
+    // printf("begin: %d, last: %d\n", begin, last);
+
     int blk_size[p];
     int offset[p + 1]; memset(offset, 0, sizeof(offset)); offset[p] = n;
     for (int i = 0; i < p; i++) {
@@ -86,12 +93,16 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
         for (int i = 0; i < tid; i++) {
             offset[tid] += blk_size[i];
         }
+        // printf("%d: %d %d\n", tid, offset[tid], blk_size[tid]);
 
         queue_[tid].resize(blk_size[tid]);
         pqueue_[tid].resize(blk_size[tid]);
-        mempcpy(queue_[tid].data(), queue.data() + offset[tid], blk_size[tid] * sizeof(int));
-        mempcpy(pqueue_[tid].data(), pqueue.data() + offset[tid], blk_size[tid] * sizeof(int));
+        mempcpy(queue_[tid].data(), queue.data() + begin + offset[tid], blk_size[tid] * sizeof(int));
+        mempcpy(pqueue_[tid].data(), pqueue.data() + begin + offset[tid], blk_size[tid] * sizeof(int));
 
+        // if(tid==0){
+        //     printf("tid 0: %d %d\n", queue_[tid].size(), queue_[tid][0]);
+        // }
         //各个线程在各自子树上BFS
         int layer_ = layer;
         int begin_ = 0;
@@ -113,14 +124,24 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
         }
     }
 
+    //合并前删除queue中pre_layer层的点。即保留到begin前元素
+    queue.resize(begin);
     //合并
-    int cnt = 0;
-    for(int i=0; i<p; i++){
-        // memcpy(queue.data() + cnt, queue_[i].data(), queue_[i].size()*sizeof(int));
-        // cnt += queue_[i].size();
-        for(int point: queue_[i])
-            queue.push_back(point);
+    // for(int i=0; i<p; i++){
+    //     for(int point: queue_[i])
+    //         queue.push_back(point);
+    // }
+    offset[0] = 0;
+    for(int i=1; i<p+1; i++){
+        offset[i] = offset[i-1] + queue_[i-1].size();
     }
+    queue.resize(begin + offset[p]);    //offset[p] is total size of queue_
+    #pragma omp parallel for num_threads(p)
+    for(int i=0; i<p; i++){
+        memcpy(queue.data() + begin + offset[i], queue_[i].data(), queue_[i].size()*sizeof(int));   //每个线程将自己的数据复制到对应位置。
+    }
+
+    // printf("%d\n", 1/0);
 }
 
 void beta_BFS(int beta, std::vector<int> &queue, int root){

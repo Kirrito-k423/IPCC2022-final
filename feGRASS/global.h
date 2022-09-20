@@ -107,6 +107,7 @@ void merge_thread_similarity_tree(int i, int similarity_tree_length, int *simila
 // effect_resistance.cpp
 void caculate_resistance(vector<edge_t> &spanning_tree, vector<edge_t> &off_tree_edge, vector<edge_t> &copy_off_tree_edge);
 void write_edge(vector<edge_t> &edge, const char *file);
+void write_bfs_process(vector<int> &bfs_process1, const char *file);
 int get_LCA(int i, int j, int *parent, int *no_weight_dis);
 
 void print_M1_Array(string name, int *toPrint);

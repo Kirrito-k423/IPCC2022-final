@@ -243,3 +243,12 @@ void write_edge(vector<edge_t> &edge, const char *file){
     // fout.close();
     fclose(fp);
 }
+
+void write_bfs_process(vector<int> &bfs_process1, const char *file){
+    FILE *fp;
+    fp = fopen(file, "w");
+    for (int i=0; i<bfs_process1.size(); i++) {
+        fprintf(fp, "%d\n", bfs_process1[i]);
+    }
+    fclose(fp);
+}
