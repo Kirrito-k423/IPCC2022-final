@@ -1,7 +1,7 @@
 #include "global.h"
 
 vector<vector<int>> adja_list; //给之后的BFS使用。adja_list_w只在DFS_traversal中使用
-vector<vector<node_t>> adja_list_w;
+static vector<vector<double>> adja_list_w;
 double *dis;
 int *parent;
 int *no_weight_dis;
@@ -17,7 +17,7 @@ int cmp_by_index(const void *a, const void *b) {
 /**
  * 根据树的边集表示，创建邻接表
 */
-void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list_w){
+void create_adja_list(vector<edge_t> &tree, vector<vector<double>> &adja_list_w){
     int edge_num = tree.size();
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
@@ -44,13 +44,10 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list_w)
         int node_end = (tid+1) * M / p;
         // DEBUG_PRINT("tid: %d, construct ajda_list, node start: %d, end: %d\n", tid, node_start, node_end);
         #pragma omp barrier
-        node_t node;    //[point_idx, edge_weight]
         for(int i=0; i<2*edge_num; i++){
             int node_index = tree[i].u-1;
             if(node_index < node_end && node_index >= node_start){
-                node.u = tree[i].v - 1;
-                node.w = tree[i].w;
-                adja_list_w[node_index].push_back(node);
+                adja_list_w[node_index].push_back(tree[i].w);
                 adja_list[node_index].push_back(tree[i].v - 1);
             }
         }
@@ -65,7 +62,7 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list_w)
  * 3. 每个点到根节点的无权重距离
  * 根节点使用largest_volume_point
 */
-void DFS_traversal(vector<vector<node_t>> &adja_list_w, double *dis, int *parent, int *no_weight_dis){
+void DFS_traversal(vector<vector<double>> &adja_list_w, double *dis, int *parent, int *no_weight_dis){
     //init distance array
     memset(dis, 0, sizeof(double)*M);
     //init parent array
@@ -81,11 +78,11 @@ void DFS_traversal(vector<vector<node_t>> &adja_list_w, double *dis, int *parent
     while(!process.empty()){
         point=process.top();
         process.pop();
-        for(int i=0; i<adja_list_w[point].size(); i++){
-            int search_point = adja_list_w[point][i].u;
+        for(int i=0; i<adja_list[point].size(); i++){
+            int search_point = adja_list[point][i];
             if(no_weight_dis[search_point]==-1){   //first search
                 process.push(search_point);
-                dis[search_point] = dis[point] + 1.0/adja_list_w[point][i].w;    //add edge weight
+                dis[search_point] = dis[point] + 1.0/adja_list_w[point][i];    //add edge weight
                 parent[search_point] = point;
                 no_weight_dis[search_point] = no_weight_dis[point] + 1;
             }
@@ -101,12 +98,12 @@ void debug_print(double *dis, int *parent, int *no_weight_dis){
     }
 }
 
-void debug_print_adja(vector<vector<node_t>> &adja_list){
+void debug_print_adja(vector<vector<int>> &adja_list){
     printf("adja: \n");
     for(int i=0; i<M; i++){
         printf("%2d: ", i);
         for(int j=0; j<adja_list[i].size(); j++){
-            printf("%d ", int(adja_list[i][j].u));
+            printf("%d ", int(adja_list[i][j]));
         }
         printf("\n");
     }

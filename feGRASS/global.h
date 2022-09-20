@@ -74,11 +74,6 @@ struct edge{
     edge(int u, int v, double eff_w, double w) :u(u), v(v), eff_w(eff_w), w(w){}
 };
 typedef struct edge edge_t;
-struct adj_node{
-    int u;
-    double w;
-};
-typedef struct adj_node node_t;
 
 // global value
 extern int M;

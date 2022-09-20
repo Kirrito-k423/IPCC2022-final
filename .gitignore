@@ -13,3 +13,4 @@ data/data.mtx
 *.o
 data/thupg*
 run/power-grid-data
+run/ref-*
