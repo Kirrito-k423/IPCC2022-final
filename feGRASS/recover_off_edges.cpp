@@ -29,10 +29,10 @@ int calculate_beta(int i, int j){
 void beta_BFS_p(int beta, std::vector<int> &queue, int root){
     /**
      * 顶点索引从0还是1开始：
-     * - adja_list从0开始
-     * - queue从1开始
+     * - root为从1开始
+     * - adja_list, queue从0开始
     */
-    queue.push_back(root);
+    queue.push_back(root-1);
     if(beta==0) return;
 
     std::vector<int> pqueue;    //记录queue中点对应的parent
@@ -52,9 +52,9 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
         for(int i = begin; i < last; i++){
             int point = queue[i];
             int parent = pqueue[i];   //parent of point
-            for(int search_point: adja_list[point-1]){
-                if(parent != search_point+1){
-                    queue.push_back(search_point+1);
+            for(int search_point: adja_list[point]){
+                if(parent != search_point){
+                    queue.push_back(search_point);
                     pqueue.push_back(point);
                 }
             }
@@ -113,9 +113,9 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
             for(int i = begin_; i < last_; i++){
                 int point = queue_[tid][i];
                 int parent = pqueue_[tid][i];   //parent of point
-                for(int search_point: adja_list[point-1]){
-                    if(parent != search_point+1){
-                        queue_[tid].push_back(search_point+1);
+                for(int search_point: adja_list[point]){
+                    if(parent != search_point){
+                        queue_[tid].push_back(search_point);
                         pqueue_[tid].push_back(point);
                     }
                 }
@@ -152,7 +152,7 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
      * - adja_list从0开始
      * - queue从1开始
     */
-    queue.push_back(root);
+    queue.push_back(root-1);
     if(beta==0) return;
 
     std::vector<int> pqueue;
@@ -167,9 +167,9 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
         for(int i = begin; i < last; i++){
             int point = queue[i];
             int parent = pqueue[i];   //parent of point
-            for(int search_point: adja_list[point-1]){
-                if(parent != search_point+1){
-                    queue.push_back(search_point+1);
+            for(int search_point: adja_list[point]){
+                if(parent != search_point){
+                    queue.push_back(search_point);
                     pqueue.push_back(point);
                 }
             }
@@ -189,10 +189,10 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
     fg_time_print(start_time,end_time,0);
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j=0; j<bfs_process1.size(); j++) {
-        int u = bfs_process1[j]-1;
+        int u = bfs_process1[j];
         for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
             int v = it->first;
-            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
+            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v)){  //v+1
                similarity_tree[it->second] = 1;
             }
         }
@@ -204,10 +204,10 @@ void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bf
                          vector<int> &similar_list, vector<vector<std::pair<int, int>>> &G_adja){
     quick_sort<int>(bfs_process2, cmp2);
     for (int j=0; j<bfs_process1.size(); j++) {
-        int u = bfs_process1[j]-1;
+        int u = bfs_process1[j];
         for(auto it=G_adja[u].begin(); it!=G_adja[u].end();it++){
             int v = it->first;
-            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v+1)){  //v+1
+            if(std::binary_search(bfs_process2.begin(), bfs_process2.end(), v)){  //v+1
                similar_list.push_back(it->second);
             }
         }
