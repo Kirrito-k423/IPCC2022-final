@@ -40,7 +40,7 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
     pqueue.reserve(beta*100);
     pqueue.push_back(0);
 
-    const int pre_layer = 10;   //先遍历若干层，直到一层有足够多点时，再omp并行
+    const int pre_layer = TREE_BFS_LAYER;   //先遍历若干层，直到一层有足够多点时，再omp并行
 
     int layer = 0;
     int begin = 0;
@@ -63,7 +63,7 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
 
     if(layer==beta) return;     //如果beta <= pre_layer，则不必再并行了
 
-    const int p = 32;
+    const int p = TREE_BFS_THREADS;
     vector<vector<int>> queue_(p);      //每个线程各自的队列
     vector<vector<int>> pqueue_(p);
 
@@ -183,7 +183,7 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
                             int *similarity_tree, vector<vector<std::pair<int, int>>> &G_adja){
     struct timeval start_time, end_time;
     gettimeofday(&start_time, NULL);
-    p_mergesort<int>(bfs_process2, 32, cmp2);
+    p_mergesort<int>(bfs_process2, SORT3_THREADS, cmp2);
     fg_time_print(start_time,end_time,0);
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j=0; j<bfs_process1.size(); j++) {
