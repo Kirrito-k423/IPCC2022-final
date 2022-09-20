@@ -40,12 +40,15 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
     pqueue.reserve(beta*100);
     pqueue.push_back(0);
 
-    const int pre_layer = TREE_BFS_LAYER;   //先遍历若干层，直到一层有足够多点时，再omp并行
+    // const int pre_layer = TREE_BFS_LAYER;   //先遍历若干层，直到一层有足够多点时，再omp并行
+    const int p = TREE_BFS_THREADS;
+    const int factor = TREE_BFS_FACTOR;
 
     int layer = 0;
     int begin = 0;
     int last = 1;
-    while(layer != beta && layer < pre_layer){
+    // while(layer != beta && layer < TREE_BFS_LAYER){
+    while(layer != beta && last - begin >= p*factor){
         for(int i = begin; i < last; i++){
             int point = queue[i];
             int parent = pqueue[i];   //parent of point
@@ -63,7 +66,6 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
 
     if(layer==beta) return;     //如果beta <= pre_layer，则不必再并行了
 
-    const int p = TREE_BFS_THREADS;
     vector<vector<int>> queue_(p);      //每个线程各自的队列
     vector<vector<int>> pqueue_(p);
 

@@ -33,7 +33,7 @@
 #define SORT1_THREADS           NUM_THREADS     //kruskal算法，对图G的边按有效权重排序
 #define SORT2_THREADS           NUM_THREADS     //恢复边阶段之前，对非树边对等效电阻降序排序
 #define SORT3_THREADS           NUM_THREADS     //细粒度排除相似边中，对bfs_process排序
-#define TREE_BFS_LAYER          10              //在生成树上进行BFS，并行第TREE_BFS_LAYER层
+#define TREE_BFS_FACTOR         3               //在生成树上进行BFS，并行第TREE_BFS_LAYER层
 #define TREE_BFS_THREADS        NUM_THREADS     
 #define first_step_OMP_percentage 0.01          //第一部分OMP的解决边数的占比 case2 3 0.01更快
 // #define task_pool_size 512                   //变成由M L 确定的全局变量

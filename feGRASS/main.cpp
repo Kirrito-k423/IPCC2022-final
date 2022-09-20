@@ -39,7 +39,7 @@ void print_time_proportion(double total_time) {
         printf("%4.2f%%\t\t", 100 * before_loop_subTime[i] / total_time);
     }
     printf("%4.2f%%\n", 100 * before_loop_subTime[i] / total_time);
-    printf("循环前 占比 %.2f%%\n", 100 * (before_loop_time) / total_time);
+    printf("循环前 %.2f 占比 %.2f%%\n", before_loop_time, 100 * (before_loop_time) / total_time);
 
     printf("\n循环1总时间\t beta\t\t 2 BFS\t\t OMP_similarity\n");
     length = sizeof(first_subTime) / sizeof(first_subTime[0]);
