@@ -32,41 +32,94 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
      * - adja_list从0开始
      * - queue从1开始
     */
-    std::vector<int> parent_queue;
-    queue.reserve(beta*100);
-    parent_queue.reserve(beta*100);
-
     queue.push_back(root);
-    parent_queue.push_back(0);
-
     if(beta==0) return;
 
-    //对root节点先处理，避免需要判断root的父节点
-    vector<int> &adja = adja_list[root-1];
-    for(int search_point: adja){
-        queue.push_back(search_point+1);
-        parent_queue.push_back(root);
-    }
+    std::vector<int> pqueue;    //记录queue中点对应的parent
+    queue.reserve(beta*100);
+    pqueue.reserve(beta*100);
+    pqueue.push_back(0);
 
-    int layer = 1;
-    int begin = 1;
-    int last = queue.size();
+    const int pre_layer = 10;   //先遍历若干层，直到一层有足够多点时，再omp并行
 
-    while(layer != beta){
+    int layer = 0;
+    int begin = 0;
+    int last = 1;
+    while(layer != beta && layer < pre_layer){
         for(int i = begin; i < last; i++){
             int point = queue[i];
-            int parent = parent_queue[i];   //parent of point
-            vector<int> &adja = adja_list[point-1];
-            for(int search_point: adja){
+            int parent = pqueue[i];   //parent of point
+            for(int search_point: adja_list[point-1]){
                 if(parent != search_point+1){
                     queue.push_back(search_point+1);
-                    parent_queue.push_back(point);
+                    pqueue.push_back(point);
                 }
             }
         }
         begin = last;
         last = queue.size();
         layer++;
+    }
+
+    if(layer==beta) return;     //如果beta <= pre_layer，则不必再并行了
+
+    const int p = 32;
+    vector<vector<int>> queue_(p);      //每个线程各自的队列
+    vector<vector<int>> pqueue_(p);
+
+    //任务划分，线程间点的个数相差小于1
+    const int n = last - begin;
+
+    int blk_size[p];
+    int offset[p + 1]; memset(offset, 0, sizeof(offset)); offset[p] = n;
+    for (int i = 0; i < p; i++) {
+        blk_size[i] = n / p;
+        if (i < n % p) { // r*(q+1) + (p-r)*q
+            blk_size[i] += 1;
+        }
+    }
+
+    #pragma omp parallel num_threads(p)
+    {
+        int tid = omp_get_thread_num();
+
+        for (int i = 0; i < tid; i++) {
+            offset[tid] += blk_size[i];
+        }
+
+        queue_[tid].resize(blk_size[tid]);
+        pqueue_[tid].resize(blk_size[tid]);
+        mempcpy(queue_[tid].data(), queue.data() + offset[tid], blk_size[tid] * sizeof(int));
+        mempcpy(pqueue_[tid].data(), pqueue.data() + offset[tid], blk_size[tid] * sizeof(int));
+
+        //各个线程在各自子树上BFS
+        int layer_ = layer;
+        int begin_ = 0;
+        int last_ = blk_size[tid];
+        while(layer_ != beta){
+            for(int i = begin_; i < last_; i++){
+                int point = queue_[tid][i];
+                int parent = pqueue_[tid][i];   //parent of point
+                for(int search_point: adja_list[point-1]){
+                    if(parent != search_point+1){
+                        queue_[tid].push_back(search_point+1);
+                        pqueue_[tid].push_back(point);
+                    }
+                }
+            }
+            begin_ = last_;
+            last_ = queue_[tid].size();
+            layer_++;
+        }
+    }
+
+    //合并
+    int cnt = 0;
+    for(int i=0; i<p; i++){
+        // memcpy(queue.data() + cnt, queue_[i].data(), queue_[i].size()*sizeof(int));
+        // cnt += queue_[i].size();
+        for(int point: queue_[i])
+            queue.push_back(point);
     }
 }
 
@@ -76,35 +129,25 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
      * - adja_list从0开始
      * - queue从1开始
     */
-    std::vector<int> parent_queue;
-    queue.reserve(beta*100);
-    parent_queue.reserve(beta*100);
-
     queue.push_back(root);
-    parent_queue.push_back(0);
-
     if(beta==0) return;
 
-    //对root节点先处理，避免需要判断root的父节点
-    vector<int> &adja = adja_list[root-1];
-    for(int search_point: adja){
-        queue.push_back(search_point+1);
-        parent_queue.push_back(root);
-    }
+    std::vector<int> pqueue;
+    queue.reserve(beta*100);
+    pqueue.reserve(beta*100);
+    pqueue.push_back(0);
 
-    int layer = 1;
-    int begin = 1;
-    int last = queue.size();
-
+    int layer = 0;
+    int begin = 0;
+    int last = 1;
     while(layer != beta){
         for(int i = begin; i < last; i++){
             int point = queue[i];
-            int parent = parent_queue[i];   //parent of point
-            vector<int> &adja = adja_list[point-1];
-            for(int search_point: adja){
+            int parent = pqueue[i];   //parent of point
+            for(int search_point: adja_list[point-1]){
                 if(parent != search_point+1){
                     queue.push_back(search_point+1);
-                    parent_queue.push_back(point);
+                    pqueue.push_back(point);
                 }
             }
         }
