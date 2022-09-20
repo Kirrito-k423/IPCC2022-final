@@ -26,27 +26,77 @@ int calculate_beta(int i, int j){
     return d1 < d2 ? d1 : d2;
 }
 
+void beta_BFS_p(int beta, std::vector<int> &queue, int root){
+    /**
+     * 顶点索引从0还是1开始：
+     * - adja_list从0开始
+     * - queue从1开始
+    */
+    std::vector<int> par_queue;
+    queue.push_back(root);
+    par_queue.push_back(0);
+
+    if(beta==0) return;
+
+    //对root节点先处理，避免需要判断root的父节点
+    set<int> &adja = adja_list[root-1];
+    for(int search_point: adja){
+        queue.push_back(search_point+1);
+        par_queue.push_back(root);
+    }
+
+    int layer = 1;
+    int begin = 1;
+    int last = queue.size();
+
+    while(layer != beta){
+        for(int i = begin; i < last; i++){
+            int point = queue[i];
+            int par = par_queue[i]-1;   //parent of point
+            set<int> &adja = adja_list[point-1];
+            adja.erase(par);
+            for(int search_point: adja){
+                queue.push_back(search_point+1);
+                par_queue.push_back(point);
+            }
+            adja.insert(par);
+        }
+        begin = last;
+        last = queue.size();
+        layer++;
+    }
+}
+
 void beta_BFS(int beta, std::vector<int> &queue, int root){
     queue.push_back(root);
+
+    if(beta==0) return;
+
     int * mark = (int * )malloc(M * sizeof(int));
     memset(mark, 0, M *sizeof(int));
     mark[root-1]=1;
-    int layer=0;
-    int begin = 0;
-    int last = 1;
+
+    set<int> &adja = adja_list[root-1];
+    for(int search_point: adja){
+        queue.push_back(search_point+1);
+    }
+
+    int layer = 1;
+    int begin = 1;
+    int last = queue.size();
+
     while(layer != beta){
-        int tmp = begin;
-        begin = last;
-        for(int i = tmp; i < last; i++){
-            int point = queue[i]-1;
-            for(int j = 0; j < adja_list[point].size(); j++){
-                int search_point = adja_list[point][j].u;
+        for(int i = begin; i < last; i++){
+            int point = queue[i];
+            set<int> &adja = adja_list[point-1];
+            for(int search_point: adja){
                 if(mark[search_point]==0){
                     queue.push_back(search_point+1);
                     mark[search_point] = 1;
                 }
             }
         }
+        begin = last;
         last = queue.size();
         layer++;
     }

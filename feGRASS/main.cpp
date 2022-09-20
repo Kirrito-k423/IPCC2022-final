@@ -459,8 +459,8 @@ int main(int argc, const char *argv[]) {
             vector<int> bfs_process2;
             beta_BFS(beta, bfs_process2, edge_point2);
 
-            DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 3X \t %ld\n", task_list[i],
-                        bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
+            DEBUG_PRINT("copy_off_tree_edge Loop %d/ \t beta %d \t bfs_process1 \t %ld \t bfs_process2\t %ld \t 2X \t %ld\n", task_list[i],
+                        beta, bfs_process1.size(), bfs_process2.size(), bfs_process1.size() * bfs_process2.size());
 
             omp_time_print(tid,omp_beta_time,omp_bfs_time,2,flag);
 

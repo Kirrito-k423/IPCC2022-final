@@ -1,6 +1,7 @@
 #include "global.h"
 
-vector<vector<node_t>> adja_list;
+vector<set<int>> adja_list; //给之后的BFS使用。adja_list_w只在DFS_traversal中使用
+vector<vector<node_t>> adja_list_w;
 double *dis;
 int *parent;
 int *no_weight_dis;
@@ -16,7 +17,7 @@ int cmp_by_index(const void *a, const void *b) {
 /**
  * 根据树的边集表示，创建邻接表
 */
-void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list){
+void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list_w){
     int edge_num = tree.size();
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
@@ -49,7 +50,8 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list){
             if(node_index < node_end && node_index >= node_start){
                 node.u = tree[i].v - 1;
                 node.w = tree[i].w;
-                adja_list[node_index].push_back(node);
+                adja_list_w[node_index].push_back(node);
+                adja_list[node_index].insert(tree[i].v - 1);
             }
         }
     }
@@ -63,7 +65,7 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list){
  * 3. 每个点到根节点的无权重距离
  * 根节点使用largest_volume_point
 */
-void DFS_traversal(vector<vector<node_t>> &adja_list, double *dis, int *parent, int *no_weight_dis){
+void DFS_traversal(vector<vector<node_t>> &adja_list_w, double *dis, int *parent, int *no_weight_dis){
     //init distance array
     memset(dis, 0, sizeof(double)*M);
     //init parent array
@@ -79,11 +81,11 @@ void DFS_traversal(vector<vector<node_t>> &adja_list, double *dis, int *parent, 
     while(!process.empty()){
         point=process.top();
         process.pop();
-        for(int i=0; i<adja_list[point].size(); i++){
-            int search_point = adja_list[point][i].u;
+        for(int i=0; i<adja_list_w[point].size(); i++){
+            int search_point = adja_list_w[point][i].u;
             if(no_weight_dis[search_point]==-1){   //first search
                 process.push(search_point);
-                dis[search_point] = dis[point] + 1.0/adja_list[point][i].w;    //add edge weight
+                dis[search_point] = dis[point] + 1.0/adja_list_w[point][i].w;    //add edge weight
                 parent[search_point] = point;
                 no_weight_dis[search_point] = no_weight_dis[point] + 1;
             }
@@ -176,17 +178,18 @@ void caculate_resistance(vector<edge_t> &spanning_tree, vector<edge_t> &off_tree
     gettimeofday(&startTime, NULL);
 
     adja_list.resize(M);
+    adja_list_w.resize(M);
     dis = (double *)malloc(M*sizeof(double));   //每个点到根节点距离
     parent = (int *)malloc(M*sizeof(int));         //每个点父节点数组
     no_weight_dis = (int *)malloc(M*sizeof(int));  //每个点到根节点无权重距离
 
     //创建生成树的邻接表
-    create_adja_list(spanning_tree, adja_list);
+    create_adja_list(spanning_tree, adja_list_w);
     printTime("resistance: create adja list")
     // debug_print_adja(adja_list);
     
     //DFS遍历，得到dis,parent等
-    DFS_traversal(adja_list, dis, parent, no_weight_dis);
+    DFS_traversal(adja_list_w, dis, parent, no_weight_dis);
     printTime("resistance: DFS traverse spanning tree")
     // debug_print(dis, parent, no_weight_dis);
     

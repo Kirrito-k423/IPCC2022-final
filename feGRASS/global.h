@@ -86,7 +86,7 @@ extern int N;
 extern int L;
 extern int largest_volume_point;
 
-extern vector<vector<node_t>> adja_list;
+extern vector<set<int>> adja_list;
 extern double *dis;
 extern int *parent;
 extern int *no_weight_dis;
@@ -95,6 +95,7 @@ extern double fg_similarity_time[2];                   // 伪逆， 循环总时
 // recover_off_edges.cpp
 int calculate_beta(int i, int j);
 void beta_BFS(int beta, std::vector<int> &queue, int root);
+void beta_BFS_p(int beta, std::vector<int> &queue, int root);
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2,
                             vector<int> &similar_list, vector<vector<std::pair<int, int>>> &G_adja);
 
