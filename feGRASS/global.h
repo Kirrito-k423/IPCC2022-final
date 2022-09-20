@@ -88,6 +88,7 @@ extern double *dis;
 extern int *parent;
 extern int *no_weight_dis;
 extern double fg_similarity_time[2];                   // 伪逆， 循环总时间， 循环内三部分时间
+extern double bfs_time[2];                   
 
 
 // recover_off_edges.cpp

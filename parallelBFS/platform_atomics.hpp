@@ -29,6 +29,7 @@ Wrappers for compiler intrinsics for atomic memory operations (AMOs)
 
     template<typename T>
     bool compare_and_swap(T &x, const T &old_val, const T &new_val) {
+        // printf("__sync_bool_compare\t");
       return __sync_bool_compare_and_swap(&x, old_val, new_val);
     }
 

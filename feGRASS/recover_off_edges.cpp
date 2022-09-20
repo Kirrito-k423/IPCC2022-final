@@ -7,7 +7,12 @@
  * @LastEditTime: 2022-09-05 16:19:17
  */
 #include "global.h"
-
+void bfs_time_print(struct timeval &start, struct timeval &end, int index){
+    gettimeofday(&end, NULL);
+    double tmp_past_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0;
+    bfs_time[index] += tmp_past_time;
+    DEBUG_PRINT("\ncopy_off_tree_edge bfs_detail %d \t took %f ms\n", index, tmp_past_time);
+}
 void fg_time_print(struct timeval &start, struct timeval &end, int index){
     gettimeofday(&end, NULL);
     double tmp_past_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0;
@@ -63,49 +68,54 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 }
 
 void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
-    queue.push_back(root);
-    queue.slide_window();
-    int * mark = (int * )malloc(M * sizeof(int));
-    memset(mark, 0, M *sizeof(int));
-    mark[root-1]=1;
+
+    struct timeval start_time, end_time;
+    gettimeofday(&start_time, NULL);
+    SlidingQueue<pair<NodeID,NodeID>> parent_queue(M);
+    parent_queue.push_back(make_pair(root-1,root-1));
+    parent_queue.slide_window();
+    // int * mark = (int * )malloc(M * sizeof(int));
+    // memset(mark, 0, M *sizeof(int));
+    // mark[root-1]=1;
     int layer=0;
-    while(!queue.empty() && layer != beta){
+    while(!parent_queue.empty() && layer != beta){
         if(layer%8==7)
-            DEBUG_PRINT("beta_BFS 1 %d %d size %ld \n ",layer,beta,queue.size());
+            DEBUG_PRINT("beta_BFS 1 %d %d size %ld \n ",layer,beta,parent_queue.size());
         else
-            DEBUG_PRINT("beta_BFS 1 %d %d size %ld \t ",layer,beta,queue.size());
-        int p=4;
+            DEBUG_PRINT("beta_BFS 1 %d %d size %ld \t ",layer,beta,parent_queue.size());
+        int p=1;
         #pragma omp parallel num_threads(p)
         {
-            QueueBuffer<NodeID> lqueue(queue, 200/p);
+            QueueBuffer<pair<NodeID,NodeID>> lqueue(parent_queue, 200/p);
             #pragma omp for nowait
-            for (auto q_iter = queue.begin(); q_iter != queue.end(); q_iter++) {
-                NodeID u = *q_iter;
-                int point = u-1;
-                // for(int j = 0; j < adja_list[point].size(); j++){
-                for (edge_t v :adja_list[point]) {
-                    // int search_point = adja_list[point][j].u;
-                    int search_point = v.u;
-                    int curr_mark=mark[search_point];
-                    if(curr_mark==0){
-                        if (compare_and_swap(mark[search_point], curr_mark, 1)) {
-                            lqueue.push_back(search_point+1);
-                        }
+            for (auto q_iter = parent_queue.begin(); q_iter != parent_queue.end(); q_iter++) {
+                int point = q_iter->first;
+                int parent = q_iter->second;
+                for(int j = 0; j < adja_list[point].size(); j++){
+                // for (edge_t v :adja_list[point]) {
+                    int search_point = adja_list[point][j].u;
+                    // int search_point = v.u;
+                    if(parent != search_point){
+                        lqueue.push_back(make_pair(search_point,point));
                         // mark[search_point] = 1;
                     }
                 }
             }
-            
             DEBUG_PRINT("bete_BFS OMP %d conflict_times %d \t ", omp_get_thread_num() , lqueue.conflict_times());
-            
-            
             lqueue.flush();
         }
         // DEBUG_PRINT("beta_BFS 2\t");
-        queue.slide_window();
+        parent_queue.slide_window();
         layer++;
     }
     DEBUG_PRINT("beta_BFS 3\n");
+    bfs_time_print(start_time,end_time,0);
+
+    for (auto q_iter = parent_queue.all_begin(); q_iter != parent_queue.end(); q_iter++) {
+        queue.push_back(q_iter->first+1);
+    }
+    queue.slide_window();
+    bfs_time_print(end_time,start_time,1);
     // printf("for root: %d, ", root);
     // for(int i = 0; i < queue.size(); i++){
     //     if (queue[i] != 0){
@@ -113,7 +123,7 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
     //     }
     // }
     // printf("\n");
-    free(mark);
+    // free(mark);
 }
 
 // fine_grained 细粒度
