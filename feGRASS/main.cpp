@@ -352,9 +352,9 @@ int main(int argc, const char *argv[]) {
         if (similarity_tree[i] == 0) {
             num_additive_tree++;
             /**** Iteration Log. Yuo delete the printf call. ****/
-            if ((num_additive_tree % 64) == 0) {
+            if ((num_additive_tree % 512) == 0) {
                 // printf("num_additive_tree : %d\n", num_additive_tree);
-                TIME_PRINT("time_per_64 time : %f ms\n", saveSubTime(time_per_64));
+                TIME_PRINT("time_per_512 time : %f ms\n", saveSubTime(time_per_64));
                 gettimeofday(&time_per_64, NULL);
             }
             spanning_tree.push_back(copy_off_tree_edge[i]);
@@ -416,6 +416,9 @@ int main(int argc, const char *argv[]) {
     gettimeofday(&loop_begin_time, NULL);
     printTime("first while");
     while (1) {
+        if (num_additive_tree == max_num_additive_tree) {
+            break;
+        }
         gettimeofday(&startTime, NULL);
         //填充未被排除的边到任务列表
         int i = curr_edge_index;
@@ -478,12 +481,12 @@ int main(int argc, const char *argv[]) {
         for (i = 0; i < task_pool_size; i++) {
             curr_edge_index = task_list[i];
             if (similarity_tree[curr_edge_index] == 0) {
-                tmp_avail_task_num++;
-                num_additive_tree++;
-                spanning_tree.push_back(copy_off_tree_edge[curr_edge_index]);
                 if (num_additive_tree == max_num_additive_tree) {
                     break;
                 }
+                tmp_avail_task_num++;
+                num_additive_tree++;
+                spanning_tree.push_back(copy_off_tree_edge[curr_edge_index]);
 
                 for (int j = 0; j < similar_list[i].size(); j++) {
                     similarity_tree[similar_list[i][j]] = 1;
@@ -503,12 +506,9 @@ int main(int argc, const char *argv[]) {
         gettimeofday(&startTime, NULL);
 
         curr_edge_index += 1;
-        if (num_additive_tree == max_num_additive_tree) {
-            break;
-        }
     }
     free(similarity_tree);
-    DEBUG_PRINT("copy_off_tree_edge EndLoop %d/%ld \t avail %d \t all %d \t %.2f%%\n", curr_edge_index, copy_off_tree_edge.size(),
+    TIME_PRINT("copy_off_tree_edge EndLoop %d/%ld \t avail %d \t all %d \t %.2f%%\n", curr_edge_index, copy_off_tree_edge.size(),
                 avail_task_num, total_task_num, 100 * (double)avail_task_num / total_task_num);
 
     gettimeofday(&loop_end_time, NULL);
