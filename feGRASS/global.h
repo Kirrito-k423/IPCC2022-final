@@ -86,7 +86,7 @@ extern int N;
 extern int L;
 extern int largest_volume_point;
 
-extern vector<set<int>> adja_list;
+extern vector<vector<int>> adja_list;
 extern double *dis;
 extern int *parent;
 extern int *no_weight_dis;

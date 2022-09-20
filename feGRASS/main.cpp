@@ -374,9 +374,9 @@ int main(int argc, const char *argv[]) {
 
             // choose two nodes as root node respectively to run belta bfs
             vector<int> bfs_process1;
-            beta_BFS(beta, bfs_process1, edge_point1);
+            beta_BFS_p(beta, bfs_process1, edge_point1);
             vector<int> bfs_process2;
-            beta_BFS(beta, bfs_process2, edge_point2);
+            beta_BFS_p(beta, bfs_process2, edge_point2);
 
             gettimeofday(&endTime, NULL);
             tmp_past_time = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000.0;

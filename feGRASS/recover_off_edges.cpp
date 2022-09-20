@@ -32,17 +32,20 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
      * - adja_list从0开始
      * - queue从1开始
     */
-    std::vector<int> par_queue;
+    std::vector<int> parent_queue;
+    queue.reserve(beta*100);
+    parent_queue.reserve(beta*100);
+
     queue.push_back(root);
-    par_queue.push_back(0);
+    parent_queue.push_back(0);
 
     if(beta==0) return;
 
     //对root节点先处理，避免需要判断root的父节点
-    set<int> &adja = adja_list[root-1];
+    vector<int> &adja = adja_list[root-1];
     for(int search_point: adja){
         queue.push_back(search_point+1);
-        par_queue.push_back(root);
+        parent_queue.push_back(root);
     }
 
     int layer = 1;
@@ -52,14 +55,14 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
     while(layer != beta){
         for(int i = begin; i < last; i++){
             int point = queue[i];
-            int par = par_queue[i]-1;   //parent of point
-            set<int> &adja = adja_list[point-1];
-            adja.erase(par);
+            int parent = parent_queue[i];   //parent of point
+            vector<int> &adja = adja_list[point-1];
             for(int search_point: adja){
-                queue.push_back(search_point+1);
-                par_queue.push_back(point);
+                if(parent != search_point+1){
+                    queue.push_back(search_point+1);
+                    parent_queue.push_back(point);
+                }
             }
-            adja.insert(par);
         }
         begin = last;
         last = queue.size();
@@ -68,17 +71,25 @@ void beta_BFS_p(int beta, std::vector<int> &queue, int root){
 }
 
 void beta_BFS(int beta, std::vector<int> &queue, int root){
+    /**
+     * 顶点索引从0还是1开始：
+     * - adja_list从0开始
+     * - queue从1开始
+    */
+    std::vector<int> parent_queue;
+    queue.reserve(beta*100);
+    parent_queue.reserve(beta*100);
+
     queue.push_back(root);
+    parent_queue.push_back(0);
 
     if(beta==0) return;
 
-    int * mark = (int * )malloc(M * sizeof(int));
-    memset(mark, 0, M *sizeof(int));
-    mark[root-1]=1;
-
-    set<int> &adja = adja_list[root-1];
+    //对root节点先处理，避免需要判断root的父节点
+    vector<int> &adja = adja_list[root-1];
     for(int search_point: adja){
         queue.push_back(search_point+1);
+        parent_queue.push_back(root);
     }
 
     int layer = 1;
@@ -88,11 +99,12 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
     while(layer != beta){
         for(int i = begin; i < last; i++){
             int point = queue[i];
-            set<int> &adja = adja_list[point-1];
+            int parent = parent_queue[i];   //parent of point
+            vector<int> &adja = adja_list[point-1];
             for(int search_point: adja){
-                if(mark[search_point]==0){
+                if(parent != search_point+1){
                     queue.push_back(search_point+1);
-                    mark[search_point] = 1;
+                    parent_queue.push_back(point);
                 }
             }
         }
@@ -100,7 +112,6 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
         last = queue.size();
         layer++;
     }
-    free(mark);
 }
 
 // fine_grained 细粒度

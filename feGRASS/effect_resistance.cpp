@@ -1,6 +1,6 @@
 #include "global.h"
 
-vector<set<int>> adja_list; //给之后的BFS使用。adja_list_w只在DFS_traversal中使用
+vector<vector<int>> adja_list; //给之后的BFS使用。adja_list_w只在DFS_traversal中使用
 vector<vector<node_t>> adja_list_w;
 double *dis;
 int *parent;
@@ -51,7 +51,7 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<node_t>> &adja_list_w)
                 node.u = tree[i].v - 1;
                 node.w = tree[i].w;
                 adja_list_w[node_index].push_back(node);
-                adja_list[node_index].insert(tree[i].v - 1);
+                adja_list[node_index].push_back(tree[i].v - 1);
             }
         }
     }
