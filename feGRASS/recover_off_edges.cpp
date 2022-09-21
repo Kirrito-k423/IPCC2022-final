@@ -36,20 +36,24 @@ int calculate_beta(int i, int j){
 
 void beta_BFS(int beta, std::vector<int> &queue, int root){
     queue.push_back(root);
-    int * mark = (int * )malloc(M * sizeof(int));
-    memset(mark, 0, M *sizeof(int));
-    mark[root-1]=1;
-    int layer=0;
+    if(beta==0) return;
+
+    std::vector<int> pqueue;
+    queue.reserve(beta*100);
+    pqueue.reserve(beta*100);
+    pqueue.push_back(0);
+
+    int layer = 0;
     int begin = 0;
     int last = 1;
     while(layer != beta){
         for(int i = begin; i < last; i++){
-            int point = queue[i]-1;
-            for(int j = 0; j < adja_list[point].size(); j++){
-                int search_point = adja_list[point][j].u;
-                if(mark[search_point]==0){
-                    queue.push_back(search_point+1);
-                    mark[search_point] = 1;
+            int point = queue[i];
+            int parent = pqueue[i];   //parent of point
+            for(edge_t search_point: adja_list[point-1]){
+                if(parent != search_point.u+1){
+                    queue.push_back(search_point.u+1);
+                    pqueue.push_back(point);
                 }
             }
         }
@@ -57,14 +61,6 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
         last = queue.size();
         layer++;
     }
-    // printf("for root: %d, ", root);
-    // for(int i = 0; i < queue.size(); i++){
-    //     if (queue[i] != 0){
-    //         printf(" %d ", queue[i]);
-    //     }
-    // }
-    // printf("\n");
-    free(mark);
 }
 
 void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
@@ -83,11 +79,31 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
             DEBUG_PRINT("beta_BFS 1 %d %d size %ld \n ",layer,beta,parent_queue.size());
         else
             DEBUG_PRINT("beta_BFS 1 %d %d size %ld \t ",layer,beta,parent_queue.size());
-        int p=1;
-        #pragma omp parallel num_threads(p)
-        {
-            QueueBuffer<pair<NodeID,NodeID>> lqueue(parent_queue, 200/p);
-            #pragma omp for nowait
+        int taskNum_per_thread = 128;
+        int p=parent_queue.size()/taskNum_per_thread;
+        if(parent_queue.size() > 2*taskNum_per_thread){
+            #pragma omp parallel num_threads(p)
+            {
+                // QueueBuffer<pair<NodeID,NodeID>> lqueue(parent_queue, 200/p);
+                QueueBuffer<pair<NodeID,NodeID>> lqueue(parent_queue);
+                #pragma omp for nowait
+                for (auto q_iter = parent_queue.begin(); q_iter != parent_queue.end(); q_iter++) {
+                    int point = q_iter->first;
+                    int parent = q_iter->second;
+                    for(int j = 0; j < adja_list[point].size(); j++){
+                    // for (edge_t v :adja_list[point]) {
+                        int search_point = adja_list[point][j].u;
+                        // int search_point = v.u;
+                        if(parent != search_point){
+                            lqueue.push_back(make_pair(search_point,point));
+                            // mark[search_point] = 1;
+                        }
+                    }
+                }
+                DEBUG_PRINT("bete_BFS OMP %d conflict_times %d \t ", omp_get_thread_num() , lqueue.conflict_times());
+                lqueue.flush();
+            }
+        }else{
             for (auto q_iter = parent_queue.begin(); q_iter != parent_queue.end(); q_iter++) {
                 int point = q_iter->first;
                 int parent = q_iter->second;
@@ -96,13 +112,11 @@ void beta_BFS(int beta, SlidingQueue<NodeID> &queue, int root){
                     int search_point = adja_list[point][j].u;
                     // int search_point = v.u;
                     if(parent != search_point){
-                        lqueue.push_back(make_pair(search_point,point));
+                        parent_queue.push_back(make_pair(search_point,point));
                         // mark[search_point] = 1;
                     }
                 }
             }
-            DEBUG_PRINT("bete_BFS OMP %d conflict_times %d \t ", omp_get_thread_num() , lqueue.conflict_times());
-            lqueue.flush();
         }
         // DEBUG_PRINT("beta_BFS 2\t");
         parent_queue.slide_window();
