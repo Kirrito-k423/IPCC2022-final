@@ -72,8 +72,21 @@ struct edge{
     double eff_w, w;
     edge(){}
     edge(int u, int v, double eff_w, double w) :u(u), v(v), eff_w(eff_w), w(w){}
+    bool operator<(const edge& e) const noexcept {
+        if(eff_w == e.eff_w){
+            if(v == e.v){
+                return u > e.u;
+            }
+            return v > e.v;
+        }
+        return eff_w < e.eff_w;
+    }
+    bool operator==(const edge& e) const noexcept {
+        return u==e.u && v==e.v && eff_w==e.eff_w && w==e.w;
+    }
 };
 typedef struct edge edge_t;
+int cmp_by_effw(const void *a, const void *b);
 struct adj_node{
     int u;
     double w;
@@ -115,4 +128,5 @@ void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree);
 bool compare(const edge_t &a, const edge_t &b);
 int cmp(const void *a, const void *b);
 #include "p_mergesort.hpp"
+void psrs(vector<edge_t> &arr, int p, comparison_fn_t cmp);
 #endif
