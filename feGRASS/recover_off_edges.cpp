@@ -8,12 +8,14 @@
  */
 #include "global.h"
 
+#ifdef TIME
 void fg_time_print(struct timeval &start, struct timeval &end, int index){
     gettimeofday(&end, NULL);
     double tmp_past_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec) / 1000.0;
     fg_similarity_time[index] += tmp_past_time;
     DEBUG_PRINT("copy_off_tree_edge omp_detail %d \t took %f ms\n", index, tmp_past_time);
 }
+#endif
 
 int cmp2(const void *a, const void *b) {
     return *((int *)a) > *((int *)b);
@@ -183,10 +185,14 @@ void beta_BFS(int beta, std::vector<int> &queue, int root){
 // fine_grained 细粒度
 void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
                             int *similarity_tree, vector<vector<std::pair<int, int>>> &G_adja){
+    #ifdef TIME
     struct timeval start_time, end_time;
     gettimeofday(&start_time, NULL);
+    #endif
     p_mergesort<int>(bfs_process2, SORT3_THREADS, cmp2);
+    #ifdef TIME
     fg_time_print(start_time,end_time,0);
+    #endif
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j=0; j<bfs_process1.size(); j++) {
         int u = bfs_process1[j];
@@ -197,7 +203,9 @@ void fg_adjust_similarity_tree(int i, std::vector<int> &bfs_process1, std::vecto
             }
         }
     }
+    #ifdef TIME
     fg_time_print(end_time,start_time,1);
+    #endif
 }
 
 void adjust_similarity_tree(std::vector<int> &bfs_process1, std::vector<int> &bfs_process2 ,\
