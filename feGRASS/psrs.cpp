@@ -61,7 +61,7 @@ void psrs(vector<edge_t> &arr, int p, comparison_fn_t cmp) {
             // 这里应该是pivot[index_j]对应的值小于local_arr_[index_i]且大于local_arr_[index_i+1]
             if (cmp(&local_arr[tid][index_i], &pivots[index_j])) {
                 // pivot[index_j] > local_arr[tid][index_i]
-                DEBUG_PRINT("tid %d: pivots[%d]: %lf > local_arr[%d][%d]: %lf, count: %d\n", tid, index_j, pivots[index_j].eff_w, tid, index_i, local_arr[tid][index_i].eff_w, count);
+                // DEBUG_PRINT("tid %d: pivots[%d]: %lf > local_arr[%d][%d]: %lf, count: %d\n", tid, index_j, pivots[index_j].eff_w, tid, index_i, local_arr[tid][index_i].eff_w, count);
                 size_arr[tid][index_j] = count;
                 count = 0;
                 index_j++;
@@ -70,7 +70,7 @@ void psrs(vector<edge_t> &arr, int p, comparison_fn_t cmp) {
                 // local_arr[index_i] == pivot[index_j]  or local_arr[index_i] > pivot[index_j]
                 index_i++;
                 count++;
-            } else if (local_arr[tid][index_i] == pivots[index_j]) {
+            } else {
                 DEBUG_PRINT("local_arr[%d][%d]] %lf == pivots[%d] %lf\n", tid, index_i, local_arr[tid][index_i].eff_w, index_j, pivots[index_j].eff_w);
                 index_i++;
                 count++;

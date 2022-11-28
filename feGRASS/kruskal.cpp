@@ -59,7 +59,8 @@ void kruscal(vector<edge_t> &edge_matrix, vector<edge_t> &spanning_tree){
     //sort according to the weight of each edge
     // stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
     // __gnu_parallel::stable_sort(edge_matrix.begin(), edge_matrix.end(), compare);
-    p_mergesort<edge_t>(edge_matrix, SORT1_THREADS, cmp);
+    // p_mergesort<edge_t>(edge_matrix, SORT1_THREADS, cmp);
+    psrs(edge_matrix, SORT1_THREADS, cmp);
     printTime("kruscal: Sort G edge")
 
     // //run kruscal to get largest-effect-weight spanning tree
