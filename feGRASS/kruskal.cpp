@@ -29,12 +29,7 @@ public:
         delete []rank;
     }
     int find_root(int id) {
-        int id_old = id;
-        while (id != parent[id]) {
-            id = parent[id];
-        }
-        parent[id_old] = id;
-        return id;
+        return id == parent[id] ? id : (parent[id] = find_root(parent[id]));
     }
 
     bool same_set(int id1, int id2) {
