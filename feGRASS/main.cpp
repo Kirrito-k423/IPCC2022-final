@@ -404,9 +404,9 @@ int main(int argc, const char *argv[]) {
 
             // choose two nodes as root node respectively to run belta bfs
             vector<int> bfs_process1;
-            beta_BFS_p(beta, bfs_process1, edge_point1);
+            beta_BFS(beta, bfs_process1, edge_point1);
             vector<int> bfs_process2;
-            beta_BFS_p(beta, bfs_process2, edge_point2);
+            beta_BFS(beta, bfs_process2, edge_point2);
 
             #ifdef TIME
             gettimeofday(&endTime, NULL);
