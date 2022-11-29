@@ -1,7 +1,7 @@
 #include "global.h"
 
-vector<vector<int>> adja_list; //给之后的BFS使用。adja_list_w只在DFS_traversal中使用
-static vector<vector<double>> adja_list_w;
+vector<vector<int>> adja_list;              //生成树的邻接表（每个顶点的相邻顶点索引）。给之后的BFS使用。adja_list_w只在DFS_traversal中使用
+static vector<vector<double>> adja_list_w;  //记录每个顶点邻接点边的权重（和上面的邻接表对应）。相当于邻接表，顶点索引和权重分开存储。
 double *dis;
 int *parent;
 int *no_weight_dis;
