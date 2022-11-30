@@ -41,7 +41,7 @@
 #define search_block_size_start 512
 #define OFFSET 10
 
-#define cut_similarity_range 3
+#define cut_similarity_range 17
 
 #define next_range 128 // DEBUG_PRINT
 
