@@ -1,7 +1,7 @@
 CC = g++
 MPICC = mpicc
 
-C_FLAGS= -O3 -fopenmp -g
+C_FLAGS= -O3 -fopenmp -march=znver1 -mavx2
 LIB = -lgomp
 # C_FLAGS= -fopenmp $(LIB) $(debugFlag)
 # C_FLAGS= -O3 -march=znver1 -mavx2 -fopenmp $(LIB) $(debugFlag)

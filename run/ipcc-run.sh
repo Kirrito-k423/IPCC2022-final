@@ -1,12 +1,4 @@
 #!/bin/bash
-###
- # @Descripttion: 
- # @version: 
- # @Author: Shaojie Tan
- # @Date: 2022-08-26 15:39:02
- # @LastEditors: Shaojie Tan
- # @LastEditTime: 2022-09-04 11:48:50
-### 
 if [ $# -eq 0 ]; then
     case=0
 elif [[ $# -eq 1 || $# -eq 2 ]]; then
@@ -18,10 +10,10 @@ fi
 echo "Test case ${case}"
 
 source /public1/soft/modules/module.sh
-module load gcc/8.1.0
-module load mpich/3.1.4-gcc8.1.0
+module load gcc/10.2.0
 set -o xtrace   #开启命令显示
 export OMP_PROC_BIND=close;export OMP_PLACES=cores
+#export OMP_NUM_THREADS=32
 
 #check if build exist
 if [ ! -d ../build/bin ];then
@@ -54,9 +46,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-coord_file_list=(./byn.mtx ./byn1.mtx ./g-3989-158400.mtx ./g-6997-83688.mtx ./ks2010-conv.mtx ./g-15991-606980.mtx)
-ref_file_list=(refer-byn.txt refer-byn1.txt refer-3989-158400.txt refer-6997-83688.txt refer-ks2010.txt refer-15991-606980.txt)
+coord_file_list=(./g-3989-158400.mtx ./g-6997-83688.mtx ./g-15991-606980.mtx)
+ref_file_list=(refer-3989-158400.txt refer-6997-83688.txt refer-15991-606980.txt)
 #run
 stdbuf --output=L srun -p IPCC -N 1 -c 64 -t 2 ../build/bin/main ${coord_file_list[${case}]} 2>&1 |tee -a $LOG
 
-python3 check.py result.txt ${ref_file_list[${case}]} 2>&1 |tee -a $LOG
+err_count=`diff result.txt ${ref_file_list[${case}]} | wc -l`
+if [ $err_count -eq 0 ]; then
+    echo "Test case ${case} passed" |tee -a $LOG
+else
+    echo "Test case ${case} failed" |tee -a $LOG
+fi
