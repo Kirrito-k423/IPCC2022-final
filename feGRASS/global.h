@@ -28,14 +28,16 @@
 #include <vector>
 #include <unordered_set>
 
-#define NUM_THREADS 32
-#define CREATE_ADJA_THREADS     NUM_THREADS     // as large as possible
+extern int NUM_THREADS;         //全局线程数，在main.cpp中定义。
+                                //通过export OMP_NUM_THREADS设置，通过omp_get_max_threads()获取
+
+#define CREATE_ADJA_THREADS     NUM_THREADS     //等效电阻部分构造生成树的邻接表
 #define SORT1_THREADS           NUM_THREADS     //kruskal算法，对图G的边按有效权重排序
 #define SORT2_THREADS           NUM_THREADS     //恢复边阶段之前，对非树边对等效电阻降序排序
 #define SORT3_THREADS           NUM_THREADS     //细粒度排除相似边中，对bfs_process排序
+#define TREE_BFS_THREADS        NUM_THREADS     //树上并行进行beta_BFS的线程数（对大例子有效，小例子无效）
 #define TREE_BFS_FACTOR         3               //在生成树上进行BFS，并行第TREE_BFS_LAYER层
-#define TREE_BFS_THREADS        NUM_THREADS     
-#define first_step_OMP_percentage 0.01          //第一部分OMP的解决边数的占比 case2 3 0.01更快
+#define first_step_OMP_percentage 0.01          //细粒度并行部分，解决边数的占比（对大例子有效，小例子无效）
 // #define task_pool_size 512                   //变成由M L 确定的全局变量
 #define avail_percent 0.92
 #define search_block_size_start 512

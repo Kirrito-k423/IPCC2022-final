@@ -11,6 +11,7 @@ int M;
 int N;
 int L;
 int largest_volume_point;
+int NUM_THREADS;        //全局线程数
 
 #ifdef TIME
 double before_loop_subTime[7] = {0, 0, 0, 0, 0, 0, 0}; // 循环前时间,主要是check统计总时间
@@ -169,6 +170,10 @@ int main(int argc, const char *argv[]) {
     /**************************************************/
     struct timeval start, end, tmp_end_time;
     gettimeofday(&start, NULL);
+
+    // get thread number
+    NUM_THREADS = omp_get_max_threads();
+    printf("thread number is %d\n", NUM_THREADS);
 
     // find the point that has the largest volume
     largest_volume_point = 1;
