@@ -37,7 +37,7 @@ extern int NUM_THREADS;         //全局线程数，在main.cpp中定义。
 #define SORT3_THREADS           NUM_THREADS     //细粒度排除相似边中，对bfs_process排序
 #define TREE_BFS_THREADS        NUM_THREADS     //树上并行进行beta_BFS的线程数（对大例子有效，小例子无效）
 #define TREE_BFS_FACTOR         3               //在生成树上进行BFS，并行第TREE_BFS_LAYER层
-#define first_step_OMP_percentage 0.01          //细粒度并行部分，解决边数的占比（对大例子有效，小例子无效）
+#define first_step_OMP_percentage 0.00          //细粒度并行部分，解决边数的占比（对大例子有效，小例子无效）
 // #define task_pool_size 512                   //变成由M L 确定的全局变量
 #define avail_percent 0.92
 #define search_block_size_start 512
