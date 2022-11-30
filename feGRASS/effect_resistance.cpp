@@ -18,10 +18,10 @@ int cmp_by_index(const void *a, const void *b) {
  * 根据树的边集表示，创建邻接表
 */
 void create_adja_list(vector<edge_t> &tree, vector<vector<double>> &adja_list_w){
-    int edge_num = tree.size();
+    long edge_num = tree.size();
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
-    int tree_size = tree.size();
+    long tree_size = tree.size();
     tree.resize(2 * tree_size);
     // duplicate edges, the back half edges aim to reverted direction
     memcpy(tree.data() + tree_size, tree.data(), tree_size * sizeof(edge_t));
@@ -30,22 +30,22 @@ void create_adja_list(vector<edge_t> &tree, vector<vector<double>> &adja_list_w)
     {
         int tid = omp_get_thread_num();
         // reverted direction of the back half edges parallelly
-        int edge_start = edge_num + tid * edge_num / p;
-        int edge_end = edge_num + (tid + 1) * edge_num / p;
+        long edge_start = edge_num + tid * (edge_num / p);
+        long edge_end = edge_num + (tid + 1) * (edge_num / p);
         // DEBUG_PRINT("tid: %d, revert edges start: %d, end: %d\n", tid, edge_start, edge_end);
-        for(int index = edge_start; index < edge_end; index++){
+        for(long index = edge_start; index < edge_end; index++){
             // revert direction
             int tmp = tree[index].u;
             tree[index].u = tree[index].v;
             tree[index].v = tmp;
         }
         // traverse the whole edges (with both direction), and append edges to assigned nodes
-        int node_start = tid * M / p;
-        int node_end = (tid+1) * M / p;
+        long node_start = tid * (M / p);
+        long node_end = (tid+1) * (M / p);
         // DEBUG_PRINT("tid: %d, construct ajda_list, node start: %d, end: %d\n", tid, node_start, node_end);
         #pragma omp barrier
-        for(int i=0; i<2*edge_num; i++){
-            int node_index = tree[i].u-1;
+        for(long i=0; i<2*edge_num; i++){
+            long node_index = tree[i].u-1;
             if(node_index < node_end && node_index >= node_start){
                 adja_list_w[node_index].push_back(tree[i].w);
                 adja_list[node_index].push_back(tree[i].v - 1);
